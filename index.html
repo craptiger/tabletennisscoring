@@ -132,7 +132,7 @@
     }
 
     .board{
-      position: relative; /* allow centered NEW MATCH button */
+      position: relative;
       flex:1;
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -144,17 +144,17 @@
     .center-match {
       position: absolute;
       left: 50%;
-      bottom: 10px; /* sits between panels, near controls but not in the way */
+      bottom: 10px;
       transform: translateX(-50%);
       z-index: 5;
       display:flex;
       align-items:center;
       justify-content:center;
-      pointer-events: none; /* container ignores touches */
+      pointer-events: none;
     }
 
     .center-match button{
-      pointer-events: auto; /* button is clickable */
+      pointer-events: auto;
       height: 38px;
       padding: 0 12px;
       font-size: 14px;
@@ -205,7 +205,7 @@
       background: var(--serve);
       border: 2px solid var(--line);
       font-weight: 900;
-      font-size: 12px; /* smaller than before */
+      font-size: 12px;
       letter-spacing:.2px;
     }
     .dot{
@@ -222,7 +222,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      padding: 10px; /* slightly tighter */
+      padding: 10px;
       cursor:pointer;
     }
     .score{
@@ -232,7 +232,6 @@
     }
     .score-tap:active{ background: var(--tap); }
 
-    /* POINT +/- controls (smaller) */
     .controls{
       display:flex;
       justify-content:space-between;
@@ -242,8 +241,8 @@
     }
     .controls button{
       flex: 1;
-      height: 44px;        /* smaller */
-      font-size: 28px;     /* smaller */
+      height: 44px;
+      font-size: 28px;
       font-weight: 900;
       border: 0;
       background: var(--panel);
@@ -252,7 +251,6 @@
     }
     .controls button:active{ background: var(--tap); }
 
-    /* Bottom action bar (smaller) */
     .bottom{
       display:flex;
       gap: 8px;
@@ -263,8 +261,8 @@
     .bottom button{
       flex: 1;
       min-width: 0;
-      height: 40px;      /* much smaller */
-      font-size: 13px;   /* much smaller */
+      height: 40px;
+      font-size: 13px;
       font-weight: 900;
       border: 3px solid var(--line);
       border-radius: 14px;
@@ -283,7 +281,6 @@
       margin-top: -2px;
     }
 
-    /* Small screens: compress further */
     @media (max-width: 520px){
       .badge .name{ font-size: 16px; max-width: 30vw; }
       .games{ font-size: 16px; min-width: 36px; padding: 3px 7px; }
@@ -292,66 +289,66 @@
       .bottom button{ height: 36px; font-size: 12px; }
       .center-match button{ height: 34px; font-size: 13px; }
     }
+
     .overlay{
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding:
-    calc(14px + env(safe-area-inset-top))
-    calc(14px + env(safe-area-inset-right))
-    calc(14px + env(safe-area-inset-bottom))
-    calc(14px + env(safe-area-inset-left));
-  background: rgba(0,0,0,0.55);
-  z-index: 9999;
-}
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding:
+        calc(14px + env(safe-area-inset-top))
+        calc(14px + env(safe-area-inset-right))
+        calc(14px + env(safe-area-inset-bottom))
+        calc(14px + env(safe-area-inset-left));
+      background: rgba(0,0,0,0.55);
+      z-index: 9999;
+    }
 
-.overlay.show{ display: flex; }
+    .overlay.show{ display: flex; }
 
-.overlay-card{
-  width: min(520px, 92vw);
-  background: var(--panel);
-  border: 4px solid var(--line);
-  border-radius: 18px;
-  box-shadow: var(--shadow);
-  padding: 16px 14px;
-  text-align: center;
-}
+    .overlay-card{
+      width: min(520px, 92vw);
+      background: var(--panel);
+      border: 4px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 16px 14px;
+      text-align: center;
+    }
 
-.overlay-title{
-  font-size: 26px;
-  font-weight: 950;
-  margin-bottom: 6px;
-}
+    .overlay-title{
+      font-size: 26px;
+      font-weight: 950;
+      margin-bottom: 6px;
+    }
 
-.overlay-sub{
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--muted);
-  margin-bottom: 14px;
-}
+    .overlay-sub{
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
 
-.overlay-actions{
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
+    .overlay-actions{
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
 
-.overlay-actions button{
-  height: 44px;
-  padding: 0 14px;
-  font-size: 14px;
-  font-weight: 900;
-  border: 3px solid var(--line);
-  border-radius: 14px;
-  background: var(--panel);
-  cursor: pointer;
-  box-shadow: var(--shadow);
-}
+    .overlay-actions button{
+      height: 44px;
+      padding: 0 14px;
+      font-size: 14px;
+      font-weight: 900;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
 
-.overlay-actions button:active{ background: var(--tap); }
-
+    .overlay-actions button:active{ background: var(--tap); }
   </style>
 </head>
 
@@ -382,7 +379,6 @@
     </div>
 
     <div class="board">
-      <!-- Center NEW MATCH button -->
       <div class="center-match">
         <button id="newMatchBtn" title="Reset points and games">NEW MATCH</button>
       </div>
@@ -418,29 +414,27 @@
       <button id="undoBtn">UNDO</button>
       <button id="swapBtn">SWAP</button>
       <button id="newGameBtn">NEW GAME</button>
-      <!-- NEW MATCH removed from bottom -->
     </div>
 
     <div class="hint">
       Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). Your match is saved automatically.
     </div>
   </div>
-<div class="overlay" id="matchOverlay" aria-hidden="true">
-  <div class="overlay-card">
-    <div class="overlay-title" id="matchTitle">Match Over</div>
-    <div class="overlay-sub" id="matchSub">HOME wins 3–0</div>
-    <div class="overlay-actions">
-      <button id="overlayNewMatchBtn">NEW MATCH</button>
-      <button id="overlayCloseBtn">CLOSE</button>
+
+  <div class="overlay" id="matchOverlay" aria-hidden="true">
+    <div class="overlay-card">
+      <div class="overlay-title" id="matchTitle">Match Over</div>
+      <div class="overlay-sub" id="matchSub">HOME wins 3–0</div>
+      <div class="overlay-actions">
+        <button id="overlayNewMatchBtn">NEW MATCH</button>
+        <button id="overlayCloseBtn">CLOSE</button>
+      </div>
     </div>
   </div>
-</div>
 
 <script>
 (() => {
   // ----- State -----
-matchOver: false
-
   let state = {
     leftName: "HOME",
     rightName: "AWAY",
@@ -449,7 +443,7 @@ matchOver: false
     leftGames: 0,
     rightGames: 0,
     startingServer: "left",
-    matchOver = false,
+    matchOver: false,
     history: []
   };
 
@@ -484,6 +478,7 @@ matchOver: false
       if(!raw) return;
       const s = JSON.parse(raw);
       if(!s || typeof s !== "object") return;
+
       state.matchOver = !!s.matchOver;
       state.leftName = typeof s.leftName === "string" ? s.leftName : state.leftName;
       state.rightName = typeof s.rightName === "string" ? s.rightName : state.rightName;
@@ -496,35 +491,36 @@ matchOver: false
       state.history = [];
     }catch(e){}
   }
-const MATCH_GAMES_TO_WIN = 3; // best of 5
 
-function showMatchOverlay(winnerSide){
-  const winnerName = winnerSide === "left" ? state.leftName : state.rightName;
-  const l = state.leftGames, r = state.rightGames;
-  $("matchTitle").textContent = "Match Over";
-  $("matchSub").textContent = `${winnerName} wins ${l}\u2013${r}`;
-  $("matchOverlay").classList.add("show");
-  $("matchOverlay").setAttribute("aria-hidden", "false");
-}
+  const MATCH_GAMES_TO_WIN = 3; // best of 5
 
-function hideMatchOverlay(){
-  $("matchOverlay").classList.remove("show");
-  $("matchOverlay").setAttribute("aria-hidden", "true");
-}
-
-function checkMatchEnd(){
-  if (state.leftGames >= MATCH_GAMES_TO_WIN) {
-    state.matchOver = true;
-    showMatchOverlay("left");
-    return true;
+  function showMatchOverlay(winnerSide){
+    const winnerName = winnerSide === "left" ? state.leftName : state.rightName;
+    const l = state.leftGames, r = state.rightGames;
+    $("matchTitle").textContent = "Match Over";
+    $("matchSub").textContent = `${winnerName} wins ${l}\u2013${r}`;
+    $("matchOverlay").classList.add("show");
+    $("matchOverlay").setAttribute("aria-hidden", "false");
   }
-  if (state.rightGames >= MATCH_GAMES_TO_WIN) {
-    state.matchOver = true;
-    showMatchOverlay("right");
-    return true;
+
+  function hideMatchOverlay(){
+    $("matchOverlay").classList.remove("show");
+    $("matchOverlay").setAttribute("aria-hidden", "true");
   }
-  return false;
-}
+
+  function checkMatchEnd(){
+    if (state.leftGames >= MATCH_GAMES_TO_WIN) {
+      state.matchOver = true;
+      showMatchOverlay("left");
+      return true;
+    }
+    if (state.rightGames >= MATCH_GAMES_TO_WIN) {
+      state.matchOver = true;
+      showMatchOverlay("right");
+      return true;
+    }
+    return false;
+  }
 
   function pushHistory(){
     state.history.push(cloneState({
@@ -534,22 +530,24 @@ function checkMatchEnd(){
       rightScore: state.rightScore,
       leftGames: state.leftGames,
       rightGames: state.rightGames,
-      startingServer: state.startingServer
+      startingServer: state.startingServer,
+      matchOver: state.matchOver
     }));
   }
 
-function newMatch(){
-  state.history = [];
-  state.leftName = "HOME";
-  state.rightName = "AWAY";
-  state.leftScore = 0;
-  state.rightScore = 0;
-  state.leftGames = 0;
-  state.rightGames = 0;
-  state.startingServer = "left";
-  state.matchOver = false;
-  render();
-}
+  function newMatch(){
+    state.history = [];
+    state.leftName = "HOME";
+    state.rightName = "AWAY";
+    state.leftScore = 0;
+    state.rightScore = 0;
+    state.leftGames = 0;
+    state.rightGames = 0;
+    state.startingServer = "left";
+    state.matchOver = false;
+    hideMatchOverlay();
+    render();
+  }
 
   function totalPoints(){
     return state.leftScore + state.rightScore;
@@ -611,11 +609,8 @@ function newMatch(){
     }
     lastServer = s;
 
-    if (state.matchOver) {
-    $("matchOverlay").classList.add("show");
-    } else {
-    $("matchOverlay").classList.remove("show");
-    }
+    if (state.matchOver) $("matchOverlay").classList.add("show");
+    else $("matchOverlay").classList.remove("show");
 
     $("sideLeft").classList.toggle("serving", s === "left");
     $("sideRight").classList.toggle("serving", s === "right");
@@ -645,13 +640,12 @@ function newMatch(){
       if(l > r) state.leftGames = clampScore(state.leftGames + 1);
       else state.rightGames = clampScore(state.rightGames + 1);
 
-// If match ends, lock scoring (do not reset points unless you want to)
-if (checkMatchEnd()) {
-  state.leftScore = 0;
-  state.rightScore = 0;
-  return true;
-}
-      
+      if (checkMatchEnd()) {
+        state.leftScore = 0;
+        state.rightScore = 0;
+        return true;
+      }
+
       const s = currentServer();
       state.leftScore = 0;
       state.rightScore = 0;
@@ -686,13 +680,7 @@ if (checkMatchEnd()) {
   function undo(){
     const prev = state.history.pop();
     if (!prev) return;
-    state.leftName = prev.leftName;
-    state.rightName = prev.rightName;
-    state.leftScore = prev.leftScore;
-    state.rightScore = prev.rightScore;
-    state.leftGames = prev.leftGames;
-    state.rightGames = prev.rightGames;
-    state.startingServer = prev.startingServer;
+    state = prev;
     render();
   }
 
@@ -706,6 +694,7 @@ if (checkMatchEnd()) {
   }
 
   function newGame(){
+    if (state.matchOver) return;
     const s = currentServer();
     state.history = [];
     state.leftScore = 0;
@@ -715,6 +704,7 @@ if (checkMatchEnd()) {
   }
 
   function editName(which){
+    if (state.matchOver) return;
     const current = which === "left" ? state.leftName : state.rightName;
     const next = prompt("Player name:", current);
     if (next === null) return;
@@ -744,14 +734,15 @@ if (checkMatchEnd()) {
     if (confirm("Start a new game? (Scores reset to 0–0)")) newGame();
   });
 
+  $("newMatchBtn").addEventListener("click", () => {
+    if (confirm("Start a new match? (Resets points, games, names)")) newMatch();
+  });
+
   $("overlayNewMatchBtn").addEventListener("click", () => {
-  if (confirm("Start a new match? (Resets points, games, names)")) newMatch();
-});
+    if (confirm("Start a new match? (Resets points, games, names)")) newMatch();
+  });
 
-$("overlayCloseBtn").addEventListener("click", () => {
-  hideMatchOverlay();
-});
-
+  $("overlayCloseBtn").addEventListener("click", hideMatchOverlay);
 
   $("serveLeft").addEventListener("click", (e) => { e.stopPropagation(); toggleServer(); });
   $("serveRight").addEventListener("click", (e) => { e.stopPropagation(); toggleServer(); });
@@ -769,11 +760,10 @@ $("overlayCloseBtn").addEventListener("click", () => {
     if (e.key.toLowerCase() === "n") newGame();
   });
 
-  // Restore saved match (if any)
   loadState();
   render();
 
-  // ---- Wake Lock (keep screen on during a match) ----
+  // ---- Wake Lock ----
   let wakeLock = null;
   async function requestWakeLock(){
     try { wakeLock = await navigator.wakeLock.request("screen"); }
