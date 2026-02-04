@@ -508,19 +508,29 @@
     $("matchOverlay").setAttribute("aria-hidden", "true");
   }
 
-  function checkMatchEnd(){
-    if (state.leftGames >= MATCH_GAMES_TO_WIN) {
-      state.matchOver = true;
-      showMatchOverlay("left");
-      return true;
-    }
-    if (state.rightGames >= MATCH_GAMES_TO_WIN) {
-      state.matchOver = true;
-      showMatchOverlay("right");
-      return true;
-    }
-    return false;
-  }
+function checkMatchEnd(){
+  const leftWon = state.leftGames >= MATCH_GAMES_TO_WIN;
+  const rightWon = state.rightGames >= MATCH_GAMES_TO_WIN;
+
+  if (!leftWon && !rightWon) return false;
+
+  // Determine winner BEFORE swapping, so message is correct
+  const winnerSide = leftWon ? "left" : "right";
+
+  // Swap ends automatically at match end
+  [state.leftName, state.rightName] = [state.rightName, state.leftName];
+  [state.leftScore, state.rightScore] = [state.rightScore, state.leftScore];
+  [state.leftGames, state.rightGames] = [state.rightGames, state.leftGames];
+  state.startingServer = (state.startingServer === "left") ? "right" : "left";
+
+  // Update winnerSide AFTER swapping (because sides flipped)
+  const winnerAfterSwap = (winnerSide === "left") ? "right" : "left";
+
+  state.matchOver = true;
+  showMatchOverlay(winnerAfterSwap);
+  return true;
+}
+
 
   function pushHistory(){
     state.history.push(cloneState({
