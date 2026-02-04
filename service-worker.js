@@ -35,7 +35,8 @@ self.addEventListener("fetch", (event) => {
       const fresh = await fetch(req);
       const url = new URL(req.url);
       if (url.origin === self.location.origin) {
-        cache.put(req, fresh.clone()).catch(() => {});
+        const cacheKey = url.origin === self.location.origin ? new Request(url.pathname, { method: "GET" }) : req;
+        cache.put(cacheKey, fresh.clone()).catch(() => {});
       }
       return fresh;
     } catch {
