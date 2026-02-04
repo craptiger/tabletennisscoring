@@ -8,6 +8,9 @@
 
   <title>Table Tennis Score</title>
   <link rel="manifest" href="./manifest.webmanifest">
+	<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
   <meta name="theme-color" content="#1e8e3e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -636,12 +639,12 @@ document.addEventListener("visibilitychange", () => {
 // Request on first user interaction (required by browsers)
 document.addEventListener("click", requestWakeLock, { once: true });
 
-  // ---- Service Worker registration (PWA install) ----
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
-    });
-  }
+  window.addEventListener("load", async () => {
+    await navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
+  });
+}
+
 
 
 })();
