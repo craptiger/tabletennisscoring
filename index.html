@@ -631,6 +631,41 @@
       navigator.serviceWorker.register("service-worker.js");
     });
   }
+
+	// ---- PWA diagnostics (temporary) ----
+(async () => {
+  const panel = document.createElement("div");
+  panel.style.position = "fixed";
+  panel.style.left = "8px";
+  panel.style.bottom = "8px";
+  panel.style.zIndex = "9999";
+  panel.style.background = "rgba(0,0,0,.75)";
+  panel.style.color = "white";
+  panel.style.padding = "8px 10px";
+  panel.style.borderRadius = "10px";
+  panel.style.fontSize = "12px";
+  panel.style.maxWidth = "92vw";
+  panel.textContent = "PWA: checking…";
+  document.body.appendChild(panel);
+
+  const manifest = document.querySelector('link[rel="manifest"]');
+  let sw = "unsupported";
+  let scope = "";
+  if ("serviceWorker" in navigator) {
+    const reg = await navigator.serviceWorker.getRegistration();
+    sw = reg ? "registered" : "NOT registered";
+    scope = reg?.scope || "";
+  }
+
+  let installable = "unknown";
+  window.addEventListener("beforeinstallprompt", () => { installable = "yes (beforeinstallprompt fired)"; });
+
+  panel.textContent =
+    `Manifest: ${manifest ? "present" : "MISSING"} | ` +
+    `SW: ${sw} | ` +
+    (scope ? `Scope: ${scope}` : "");
+})();
+
 </script>
 </body>
 </html>
