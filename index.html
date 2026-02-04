@@ -626,6 +626,11 @@
   // Request on first user interaction (required by browsers)
   document.addEventListener("click", requestWakeLock, { once: true });
 })();
+	 if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js");
+    });
+  }
 </script>
 </body>
 </html>
