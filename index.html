@@ -292,6 +292,66 @@
       .bottom button{ height: 36px; font-size: 12px; }
       .center-match button{ height: 34px; font-size: 13px; }
     }
+    .overlay{
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(14px + env(safe-area-inset-top))
+    calc(14px + env(safe-area-inset-right))
+    calc(14px + env(safe-area-inset-bottom))
+    calc(14px + env(safe-area-inset-left));
+  background: rgba(0,0,0,0.55);
+  z-index: 9999;
+}
+
+.overlay.show{ display: flex; }
+
+.overlay-card{
+  width: min(520px, 92vw);
+  background: var(--panel);
+  border: 4px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 16px 14px;
+  text-align: center;
+}
+
+.overlay-title{
+  font-size: 26px;
+  font-weight: 950;
+  margin-bottom: 6px;
+}
+
+.overlay-sub{
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.overlay-actions{
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.overlay-actions button{
+  height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 900;
+  border: 3px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.overlay-actions button:active{ background: var(--tap); }
+
   </style>
 </head>
 
@@ -365,10 +425,22 @@
       Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). Your match is saved automatically.
     </div>
   </div>
+<div class="overlay" id="matchOverlay" aria-hidden="true">
+  <div class="overlay-card">
+    <div class="overlay-title" id="matchTitle">Match Over</div>
+    <div class="overlay-sub" id="matchSub">HOME wins 3–0</div>
+    <div class="overlay-actions">
+      <button id="overlayNewMatchBtn">NEW MATCH</button>
+      <button id="overlayCloseBtn">CLOSE</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (() => {
   // ----- State -----
+matchOver: false
+
   let state = {
     leftName: "HOME",
     rightName: "AWAY",
@@ -377,6 +449,7 @@
     leftGames: 0,
     rightGames: 0,
     startingServer: "left",
+    matchOver = false,
     history: []
   };
 
@@ -398,7 +471,8 @@
         rightScore: state.rightScore,
         leftGames: state.leftGames,
         rightGames: state.rightGames,
-        startingServer: state.startingServer
+        startingServer: state.startingServer,
+        matchOver: state.matchOver
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     }catch(e){}
@@ -410,7 +484,7 @@
       if(!raw) return;
       const s = JSON.parse(raw);
       if(!s || typeof s !== "object") return;
-
+      state.matchOver = !!s.matchOver;
       state.leftName = typeof s.leftName === "string" ? s.leftName : state.leftName;
       state.rightName = typeof s.rightName === "string" ? s.rightName : state.rightName;
       state.leftScore = Number.isFinite(s.leftScore) ? s.leftScore : state.leftScore;
@@ -422,6 +496,35 @@
       state.history = [];
     }catch(e){}
   }
+const MATCH_GAMES_TO_WIN = 3; // best of 5
+
+function showMatchOverlay(winnerSide){
+  const winnerName = winnerSide === "left" ? state.leftName : state.rightName;
+  const l = state.leftGames, r = state.rightGames;
+  $("matchTitle").textContent = "Match Over";
+  $("matchSub").textContent = `${winnerName} wins ${l}\u2013${r}`;
+  $("matchOverlay").classList.add("show");
+  $("matchOverlay").setAttribute("aria-hidden", "false");
+}
+
+function hideMatchOverlay(){
+  $("matchOverlay").classList.remove("show");
+  $("matchOverlay").setAttribute("aria-hidden", "true");
+}
+
+function checkMatchEnd(){
+  if (state.leftGames >= MATCH_GAMES_TO_WIN) {
+    state.matchOver = true;
+    showMatchOverlay("left");
+    return true;
+  }
+  if (state.rightGames >= MATCH_GAMES_TO_WIN) {
+    state.matchOver = true;
+    showMatchOverlay("right");
+    return true;
+  }
+  return false;
+}
 
   function pushHistory(){
     state.history.push(cloneState({
@@ -444,6 +547,7 @@ function newMatch(){
   state.leftGames = 0;
   state.rightGames = 0;
   state.startingServer = "left";
+  state.matchOver = false;
   render();
 }
 
@@ -507,6 +611,12 @@ function newMatch(){
     }
     lastServer = s;
 
+    if (state.matchOver) {
+    $("matchOverlay").classList.add("show");
+    } else {
+    $("matchOverlay").classList.remove("show");
+    }
+
     $("sideLeft").classList.toggle("serving", s === "left");
     $("sideRight").classList.toggle("serving", s === "right");
 
@@ -535,8 +645,13 @@ function newMatch(){
       if(l > r) state.leftGames = clampScore(state.leftGames + 1);
       else state.rightGames = clampScore(state.rightGames + 1);
 
-      if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
-
+// If match ends, lock scoring (do not reset points unless you want to)
+if (checkMatchEnd()) {
+  state.leftScore = 0;
+  state.rightScore = 0;
+  return true;
+}
+      
       const s = currentServer();
       state.leftScore = 0;
       state.rightScore = 0;
@@ -547,6 +662,8 @@ function newMatch(){
   }
 
   function addPoint(side){
+    if (state.matchOver) return;
+
     pushHistory();
     if (side === "left") state.leftScore = clampScore(state.leftScore + 1);
     else state.rightScore = clampScore(state.rightScore + 1);
@@ -558,6 +675,8 @@ function newMatch(){
   }
 
   function subPoint(side){
+    if (state.matchOver) return;
+
     pushHistory();
     if (side === "left") state.leftScore = clampScore(state.leftScore - 1);
     else state.rightScore = clampScore(state.rightScore - 1);
@@ -625,9 +744,14 @@ function newMatch(){
     if (confirm("Start a new game? (Scores reset to 0–0)")) newGame();
   });
 
-  $("newMatchBtn").addEventListener("click", () => {
-    if (confirm("Start a new match? (Resets points and games)")) newMatch();
-  });
+  $("overlayNewMatchBtn").addEventListener("click", () => {
+  if (confirm("Start a new match? (Resets points, games, names)")) newMatch();
+});
+
+$("overlayCloseBtn").addEventListener("click", () => {
+  hideMatchOverlay();
+});
+
 
   $("serveLeft").addEventListener("click", (e) => { e.stopPropagation(); toggleServer(); });
   $("serveRight").addEventListener("click", (e) => { e.stopPropagation(); toggleServer(); });
