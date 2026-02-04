@@ -642,28 +642,36 @@ function checkMatchEnd(){
   }
 
   function maybeAwardGame(){
-    const l = state.leftScore, r = state.rightScore;
-    const diff = Math.abs(l - r);
-    const max = Math.max(l, r);
+  const l = state.leftScore, r = state.rightScore;
+  const diff = Math.abs(l - r);
+  const max = Math.max(l, r);
 
-    if(max >= 11 && diff >= 2){
-      if(l > r) state.leftGames = clampScore(state.leftGames + 1);
-      else state.rightGames = clampScore(state.rightGames + 1);
+  if (max >= 11 && diff >= 2){
 
-      if (checkMatchEnd()) {
-        state.leftScore = 0;
-        state.rightScore = 0;
-        return true;
-      }
+    // Award the game
+    if (l > r) state.leftGames++;
+    else state.rightGames++;
 
-      const s = currentServer();
-      state.leftScore = 0;
-      state.rightScore = 0;
-      state.startingServer = s;
-      return true;
-    }
-    return false;
+    // Swap ends AFTER the game
+    [state.leftName, state.rightName] = [state.rightName, state.leftName];
+    [state.leftGames, state.rightGames] = [state.rightGames, state.leftGames];
+
+    // Determine next server BEFORE reset
+    const nextServer = currentServer() === "left" ? "right" : "left";
+
+    // Reset points
+    state.leftScore = 0;
+    state.rightScore = 0;
+    state.startingServer = nextServer;
+
+    // Now check if match is over
+    checkMatchEnd();
+
+    return true;
   }
+  return false;
+}
+
 
   function addPoint(side){
     if (state.matchOver) return;
