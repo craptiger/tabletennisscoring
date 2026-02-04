@@ -1,5 +1,5 @@
-const CACHE_NAME = "tt-scoreboard-v4";
-const ASSETS = [
+const CACHE_NAME = "tt-scoreboard-runtime-v1";
+const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
@@ -10,7 +10,7 @@ const ASSETS = [
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).catch(() => {})
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS)).catch(() => {})
   );
 });
 
@@ -22,26 +22,52 @@ self.addEventListener("activate", (event) => {
   })());
 });
 
+function isHTMLNavigation(request) {
+  return request.mode === "navigate" ||
+    (request.headers.get("accept") || "").includes("text/html");
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
 
-  event.respondWith((async () => {
-    const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(req, { ignoreSearch: true });
-    if (cached) return cached;
+  const url = new URL(req.url);
+  const sameOrigin = url.origin === self.location.origin;
 
-    try {
-      const fresh = await fetch(req);
-      const url = new URL(req.url);
-      if (url.origin === self.location.origin) {
-        const cacheKey = url.origin === self.location.origin ? new Request(url.pathname, { method: "GET" }) : req;
-        cache.put(cacheKey, fresh.clone()).catch(() => {});
+  // Network-first for HTML navigations (index.html). This is the "seamless updates" bit.
+  if (sameOrigin && isHTMLNavigation(req)) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const fresh = await fetch(req);
+        // Always update cached index.html so next load is latest
+        cache.put("./index.html", fresh.clone()).catch(() => {});
+        return fresh;
+      } catch {
+        const cached = await cache.match("./index.html");
+        return cached || new Response("Offline", { status: 503, statusText: "Offline" });
       }
-      return fresh;
-    } catch {
-      const fallback = await cache.match("./index.html");
-      return fallback || new Response("Offline", { status: 503, statusText: "Offline" });
-    }
-  })());
+    })());
+    return;
+  }
+
+  // Stale-while-revalidate for other same-origin GETs (icons/manifest/anything else)
+  if (sameOrigin) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(req, { ignoreSearch: true });
+      const fetchPromise = fetch(req)
+        .then((fresh) => {
+          cache.put(req, fresh.clone()).catch(() => {});
+          return fresh;
+        })
+        .catch(() => null);
+
+      // Return cached immediately if present, otherwise wait for network.
+      return cached || (await fetchPromise) || new Response("Offline", { status: 503, statusText: "Offline" });
+    })());
+    return;
+  }
+
+  // For cross-origin, just pass through (or you can ignore)
 });
