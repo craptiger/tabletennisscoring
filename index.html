@@ -4,29 +4,24 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="screen-orientation" content="landscape">
-<meta name="orientation" content="landscape">
+  <meta name="orientation" content="landscape">
 
   <title>Table Tennis Score</title>
+
   <link rel="manifest" href="./manifest.webmanifest">
-	<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
-<link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
   <meta name="theme-color" content="#1e8e3e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <style>
-  	html, body {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-  	.namewrap{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
 
     :root{
       --bg:#f6f6f6;
@@ -40,7 +35,9 @@
       --serve: rgba(0,0,0,.12);
       --danger: #b00020;
     }
+
     *{box-sizing:border-box}
+
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
@@ -49,17 +46,18 @@
       user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
-  .app{
-  min-height: 100svh;
-  display:flex;
-  flex-direction:column;
-  padding:
-  calc(10px + env(safe-area-inset-top))
-  calc(10px + env(safe-area-inset-right))
-  calc(10px + env(safe-area-inset-bottom))
-  calc(10px + env(safe-area-inset-left));
-  gap: 6px;
-}
+
+    .app{
+      min-height: 100svh;
+      display:flex;
+      flex-direction:column;
+      padding:
+        calc(10px + env(safe-area-inset-top))
+        calc(10px + env(safe-area-inset-right))
+        calc(10px + env(safe-area-inset-bottom))
+        calc(10px + env(safe-area-inset-left));
+      gap: 6px;
+    }
 
     .top{
       display:flex;
@@ -67,46 +65,108 @@
       align-items:stretch;
       justify-content:space-between;
     }
-.badge{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding: 6px 8px;
-  min-height: 44px;
-}
-	  
-	  .badge .mini{
-  display:flex;
-  flex-direction:row;
-  gap:6px;
-  margin-left: 8px;
-}
 
-.mini button{
-  width: 34px;
-  height: 30px;
-  font-size: 16px;
-}
+    .namewrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width: 0;
+    }
 
-.badge .name{
-  font-size: 18px;
-  font-weight: 800;
-}
-.games{
-  font-size: 18px;
-  min-width: 40px;
-  padding: 4px 8px;
-}
-	  .board{
+    .badge{
+      flex: 1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 6px 8px;
+      min-height: 44px;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .badge .mini{
+      display:flex;
+      flex-direction:row;
+      gap:6px;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
+    .mini button{
+      width: 34px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: 900;
+      border: 3px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      cursor:pointer;
+    }
+    .mini button:active{ background: var(--tap); }
+
+    .badge .name{
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: .3px;
+      padding: 4px 6px;
+      border-radius: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 34vw;
+    }
+    .badge .name:active{ background: var(--tap); }
+
+    .games{
+      font-size: 18px;
+      font-weight: 900;
+      min-width: 40px;
+      padding: 4px 8px;
+      border: 3px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      text-align:center;
+      flex-shrink: 0;
+    }
+
+    .board{
+      position: relative; /* allow centered NEW MATCH button */
       flex:1;
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap: 18px;
       align-items:stretch;
+      min-width: 0;
     }
-    .board, .side {
-  min-width: 0;
-}
+
+    .center-match {
+      position: absolute;
+      left: 50%;
+      bottom: 10px; /* sits between panels, near controls but not in the way */
+      transform: translateX(-50%);
+      z-index: 5;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events: none; /* container ignores touches */
+    }
+
+    .center-match button{
+      pointer-events: auto; /* button is clickable */
+      height: 38px;
+      padding: 0 12px;
+      font-size: 14px;
+      font-weight: 900;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .center-match button:active{ background: var(--tap); }
 
     .side{
       position:relative;
@@ -117,42 +177,44 @@
       background: var(--panel);
       box-shadow: var(--shadow);
       overflow:hidden;
+      min-width: 0;
     }
-    .side.serving {
-  border: 8px solid #1e8e3e;
-  box-shadow: 0 0 0 4px rgba(30, 142, 62, 0.25), var(--shadow);
-}
-	
-    
 
-.side.flash {
-  animation: serveFlash 250ms ease-out;
-}
-@keyframes serveFlash {
-  from { transform: scale(1.00); }
-  50% { transform: scale(1.01); }
-  to { transform: scale(1.00); }
-}
-.serve-indicator{
-  cursor:pointer;
-  position:absolute;
-  top: 8px;
-  left: 8px;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: var(--serve);
-  border: 2px solid var(--line);
-  font-weight: 900;
-  font-size: 14px;
-  letter-spacing:.3px;
-}
-.dot{
-  width: 10px;
-  height: 10px;
-}
+    .side.serving {
+      border: 8px solid #1e8e3e;
+      box-shadow: 0 0 0 4px rgba(30, 142, 62, 0.25), var(--shadow);
+    }
+
+    .side.flash { animation: serveFlash 250ms ease-out; }
+    @keyframes serveFlash {
+      from { transform: scale(1.00); }
+      50% { transform: scale(1.01); }
+      to { transform: scale(1.00); }
+    }
+
+    .serve-indicator{
+      cursor:pointer;
+      position:absolute;
+      top: 8px;
+      left: 8px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--serve);
+      border: 2px solid var(--line);
+      font-weight: 900;
+      font-size: 12px; /* smaller than before */
+      letter-spacing:.2px;
+    }
+    .dot{
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--ink);
+      display:inline-block;
+    }
     .serve-hidden{ display:none; }
 
     .score-tap{
@@ -160,94 +222,111 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      padding: 12px;
+      padding: 10px; /* slightly tighter */
       cursor:pointer;
     }
     .score{
-      font-size: clamp(96px, 14vw, 180px);
+      font-size: clamp(92px, 14vw, 175px);
       font-weight: 900;
       line-height:1;
     }
     .score-tap:active{ background: var(--tap); }
 
+    /* POINT +/- controls (smaller) */
     .controls{
-  display:flex;
-  justify-content:space-between;
-  gap: 12px;
-  padding: 8px;
-  border-top: 4px solid var(--line);
-}
-.controls button{
-  flex: 1;
-  height: 64px;
-  font-size: 40px;
-}
-
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 6px 8px;
+      border-top: 4px solid var(--line);
+    }
+    .controls button{
+      flex: 1;
+      height: 44px;        /* smaller */
+      font-size: 28px;     /* smaller */
+      font-weight: 900;
+      border: 0;
+      background: var(--panel);
+      cursor:pointer;
+      border-radius: 12px;
+    }
     .controls button:active{ background: var(--tap); }
 
+    /* Bottom action bar (smaller) */
     .bottom{
       display:flex;
-      gap: 12px;
-      align-items:stretch;
+      gap: 8px;
+      align-items:center;
       justify-content:center;
-      flex-wrap:wrap;
+      flex-wrap:nowrap;
     }
     .bottom button{
       flex: 1;
-      min-width: 170px;
-      height: 54px;
-      font-size: 20px;
+      min-width: 0;
+      height: 40px;      /* much smaller */
+      font-size: 13px;   /* much smaller */
       font-weight: 900;
-      border: 4px solid var(--line);
-      border-radius: 16px;
+      border: 3px solid var(--line);
+      border-radius: 14px;
       background: var(--panel);
       box-shadow: var(--shadow);
       cursor:pointer;
+      padding: 0 8px;
+      white-space: nowrap;
     }
     .bottom button:active{ background: var(--tap); }
 
     .hint{
       text-align:center;
       color: var(--muted);
-      font-size: 14px;
-      margin-top: -4px;
+      font-size: 12px;
+      margin-top: -2px;
     }
 
-    /* Small screens: keep it friendly */
+    /* Small screens: compress further */
     @media (max-width: 520px){
-      .badge .name{ font-size: 24px; }
-      .controls button{ height: 84px; font-size: 44px; }
-      .bottom button{ height: 68px; font-size: 22px; }
+      .badge .name{ font-size: 16px; max-width: 30vw; }
+      .games{ font-size: 16px; min-width: 36px; padding: 3px 7px; }
+      .mini button{ width: 32px; height: 28px; font-size: 15px; }
+      .controls button{ height: 40px; font-size: 26px; }
+      .bottom button{ height: 36px; font-size: 12px; }
+      .center-match button{ height: 34px; font-size: 13px; }
     }
   </style>
 </head>
+
 <body>
   <div class="app">
     <div class="top">
-  <div class="badge" id="badgeLeft">
-    <div class="namewrap">
-      <div class="name" id="nameLeft" title="Tap to edit name">HOME</div>
-      <div class="games" title="Games won"><span id="gamesLeft">0</span></div>
-    </div>
-    <div class="mini">
-      <button id="leftNamePlus" title="Add game">+</button>
-      <button id="leftNameMinus" title="Remove game">-</button>
-    </div>
-  </div>
+      <div class="badge" id="badgeLeft">
+        <div class="namewrap">
+          <div class="name" id="nameLeft" title="Tap to edit name">HOME</div>
+          <div class="games" title="Games won"><span id="gamesLeft">0</span></div>
+        </div>
+        <div class="mini">
+          <button id="leftNamePlus" title="Add game">+</button>
+          <button id="leftNameMinus" title="Remove game">-</button>
+        </div>
+      </div>
 
-  <div class="badge" id="badgeRight">
-    <div class="mini">
-      <button id="rightNamePlus" title="Add game">+</button>
-      <button id="rightNameMinus" title="Remove game">-</button>
+      <div class="badge" id="badgeRight">
+        <div class="mini">
+          <button id="rightNamePlus" title="Add game">+</button>
+          <button id="rightNameMinus" title="Remove game">-</button>
+        </div>
+        <div class="namewrap">
+          <div class="name" id="nameRight" title="Tap to edit name">AWAY</div>
+          <div class="games" title="Games won"><span id="gamesRight">0</span></div>
+        </div>
+      </div>
     </div>
-    <div class="namewrap">
-      <div class="name" id="nameRight" title="Tap to edit name">AWAY</div>
-      <div class="games" title="Games won"><span id="gamesRight">0</span></div>
-    </div>
-  </div>
-</div>
 
     <div class="board">
+      <!-- Center NEW MATCH button -->
+      <div class="center-match">
+        <button id="newMatchBtn" title="Reset points and games">NEW MATCH</button>
+      </div>
+
       <div class="side" id="sideLeft">
         <div class="serve-indicator" id="serveLeft">
           <span class="dot"></span><span>SERVE</span>
@@ -277,29 +356,29 @@
 
     <div class="bottom">
       <button id="undoBtn">UNDO</button>
-      <button id="swapBtn">SWAP ENDS</button>
+      <button id="swapBtn">SWAP</button>
       <button id="newGameBtn">NEW GAME</button>
-      <button id="newMatchBtn">NEW MATCH</button>
+      <!-- NEW MATCH removed from bottom -->
     </div>
-    <div class="hint">Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). Your match is saved automatically.</div>
+
+    <div class="hint">
+      Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). Your match is saved automatically.
+    </div>
   </div>
 
 <script>
 (() => {
   // ----- State -----
   let state = {
-  leftName: "HOME",
-  rightName: "AWAY",
-  leftScore: 0,
-  rightScore: 0,
-
-  leftGames: 0,
-  rightGames: 0,
-
-  startingServer: "left",
-  history: []
-};
-
+    leftName: "HOME",
+    rightName: "AWAY",
+    leftScore: 0,
+    rightScore: 0,
+    leftGames: 0,
+    rightGames: 0,
+    startingServer: "left",
+    history: []
+  };
 
   // ----- Helpers -----
   const $ = (id) => document.getElementById(id);
@@ -308,11 +387,44 @@
     return JSON.parse(JSON.stringify(s));
   }
 
-const STORAGE_KEY = "ttScoreStateV1";
+  const STORAGE_KEY = "ttScoreStateV1";
 
-function saveState(){
-  try{
-    const payload = {
+  function saveState(){
+    try{
+      const payload = {
+        leftName: state.leftName,
+        rightName: state.rightName,
+        leftScore: state.leftScore,
+        rightScore: state.rightScore,
+        leftGames: state.leftGames,
+        rightGames: state.rightGames,
+        startingServer: state.startingServer
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }catch(e){}
+  }
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const s = JSON.parse(raw);
+      if(!s || typeof s !== "object") return;
+
+      state.leftName = typeof s.leftName === "string" ? s.leftName : state.leftName;
+      state.rightName = typeof s.rightName === "string" ? s.rightName : state.rightName;
+      state.leftScore = Number.isFinite(s.leftScore) ? s.leftScore : state.leftScore;
+      state.rightScore = Number.isFinite(s.rightScore) ? s.rightScore : state.rightScore;
+      state.leftGames = Number.isFinite(s.leftGames) ? s.leftGames : state.leftGames;
+      state.rightGames = Number.isFinite(s.rightGames) ? s.rightGames : state.rightGames;
+      state.startingServer = (s.startingServer === "left" || s.startingServer === "right") ? s.startingServer : state.startingServer;
+
+      state.history = [];
+    }catch(e){}
+  }
+
+  function pushHistory(){
+    state.history.push(cloneState({
       leftName: state.leftName,
       rightName: state.rightName,
       leftScore: state.leftScore,
@@ -320,198 +432,128 @@ function saveState(){
       leftGames: state.leftGames,
       rightGames: state.rightGames,
       startingServer: state.startingServer
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }catch(e){
-    // ignore (private mode etc.)
+    }));
   }
-}
 
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return;
-    const s = JSON.parse(raw);
-    if(!s || typeof s !== "object") return;
-
-    state.leftName = typeof s.leftName === "string" ? s.leftName : state.leftName;
-    state.rightName = typeof s.rightName === "string" ? s.rightName : state.rightName;
-    state.leftScore = Number.isFinite(s.leftScore) ? s.leftScore : state.leftScore;
-    state.rightScore = Number.isFinite(s.rightScore) ? s.rightScore : state.rightScore;
-    state.leftGames = Number.isFinite(s.leftGames) ? s.leftGames : state.leftGames;
-    state.rightGames = Number.isFinite(s.rightGames) ? s.rightGames : state.rightGames;
-    state.startingServer = (s.startingServer === "left" || s.startingServer === "right") ? s.startingServer : state.startingServer;
-
-    // Never restore history
+  function newMatch(){
     state.history = [];
-  }catch(e){
-    // ignore
+    state.leftScore = 0;
+    state.rightScore = 0;
+    state.leftGames = 0;
+    state.rightGames = 0;
+    state.startingServer = "left";
+    render();
   }
-}
-function pushHistory(){
-  state.history.push(cloneState({
-    leftName: state.leftName,
-    rightName: state.rightName,
-    leftScore: state.leftScore,
-    rightScore: state.rightScore,
-    leftGames: state.leftGames,
-    rightGames: state.rightGames,
-    startingServer: state.startingServer
-  }));
-}
-
-function newMatch(){
-  state.history = [];
-  state.leftScore = 0;
-  state.rightScore = 0;
-  state.leftGames = 0;
-  state.rightGames = 0;
-  state.startingServer = "left";
-  render();
-}
-
-$("newMatchBtn").addEventListener("click", () => {
-  if (confirm("Start a new match? (Resets points and games)")) newMatch();
-});
 
   function totalPoints(){
     return state.leftScore + state.rightScore;
   }
 
   function serveEvery(){
-    // At 10-10 or beyond, serve alternates every 1 point
     if (state.leftScore >= 10 && state.rightScore >= 10) return 1;
     return 2;
   }
 
- function currentServer(){
-  // Server for the *next point* based on total points played.
-  // Pre-deuce: server changes every 2 points -> cycle length 4
-  // Deuce (10–10+): server changes every 1 point -> cycle length 2
-  const block = serveEvery();           // 2 normally, 1 at deuce
-  const t = totalPoints();              // points already played
-  const cycle = block * 2;              // 4 or 2
-  const inFirstHalf = (t % cycle) < block;
-
-  if (state.startingServer === "left") {
-    return inFirstHalf ? "left" : "right";
-  } else {
-    return inFirstHalf ? "right" : "left";
-  }
-}
-
-function toggleServer(){
-  pushHistory();
-  const now = currentServer();
-  const other = now === "left" ? "right" : "left";
-
-  // Adjust startingServer so that `other` becomes the server
-  const block = serveEvery();
-  const flips = Math.floor(totalPoints() / block);
-
-  if (flips % 2 === 0) {
-    state.startingServer = other;
-  } else {
-    state.startingServer = now;
-  }
-
-  render();
-}
-
-
-
-  function setServingSide(side){
-    // Set "startingServer" such that current server becomes `side` at this point count.
-    // We adjust startingServer based on current flips parity.
+  function currentServer(){
     const block = serveEvery();
-    const flips = Math.floor(totalPoints() / block);
-    if (flips % 2 === 0){
-      state.startingServer = side;
+    const t = totalPoints();
+    const cycle = block * 2;
+    const inFirstHalf = (t % cycle) < block;
+
+    if (state.startingServer === "left") {
+      return inFirstHalf ? "left" : "right";
     } else {
-      state.startingServer = (side === "left") ? "right" : "left";
+      return inFirstHalf ? "right" : "left";
     }
   }
 
+  function toggleServer(){
+    pushHistory();
+    const now = currentServer();
+    const other = now === "left" ? "right" : "left";
+    const block = serveEvery();
+    const flips = Math.floor(totalPoints() / block);
+
+    if (flips % 2 === 0) state.startingServer = other;
+    else state.startingServer = now;
+
+    render();
+  }
+
   function clampScore(n){
-    return Math.max(0, Math.min(99, n)); // 2-digit friendly
+    return Math.max(0, Math.min(99, n));
   }
 
   let lastServer = null;
 
   function render(){
-  $("nameLeft").textContent = state.leftName;
-  $("nameRight").textContent = state.rightName;
-  $("scoreLeft").textContent = state.leftScore;
-  $("scoreRight").textContent = state.rightScore;
+    $("nameLeft").textContent = state.leftName;
+    $("nameRight").textContent = state.rightName;
+    $("scoreLeft").textContent = state.leftScore;
+    $("scoreRight").textContent = state.rightScore;
 
-  $("gamesLeft").textContent = state.leftGames;
-  $("gamesRight").textContent = state.rightGames;
+    $("gamesLeft").textContent = state.leftGames;
+    $("gamesRight").textContent = state.rightGames;
 
-  const s = currentServer();
-
-// Flash the serving side when it changes
-if (lastServer !== null && lastServer !== s){
-  const el = (s === "left") ? $("sideLeft") : $("sideRight");
-  el.classList.remove("flash");
-  // reflow to restart animation
-  void el.offsetWidth;
-  el.classList.add("flash");
-}
-lastServer = s;
-
-$("sideLeft").classList.toggle("serving", s === "left");
-$("sideRight").classList.toggle("serving", s === "right");
-
-$("serveLeft").classList.toggle("serve-hidden", s !== "left");
-$("serveRight").classList.toggle("serve-hidden", s !== "right");
-$("undoBtn").disabled = state.history.length === 0;
-  $("undoBtn").style.opacity = state.history.length === 0 ? 0.5 : 1;
-
-  saveState();
-}
-
-  // ----- Actions -----
-
-function adjustGames(which, delta){
-  pushHistory();
-  if (which === "left") state.leftGames = clampScore(state.leftGames + delta);
-  else state.rightGames = clampScore(state.rightGames + delta);
-  render();
-}
-
-function maybeAwardGame(){
-  const l = state.leftScore, r = state.rightScore;
-  const diff = Math.abs(l - r);
-  const max = Math.max(l, r);
-  if(max >= 11 && diff >= 2){
-    // Game won
-    if(l > r) state.leftGames = clampScore(state.leftGames + 1);
-    else state.rightGames = clampScore(state.rightGames + 1);
-
-    // Short vibration to acknowledge game win
-    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
-
-    // Reset points for next game; keep server as whatever is currently shown
     const s = currentServer();
-    state.leftScore = 0;
-    state.rightScore = 0;
-    state.startingServer = s;
-    return true;
+
+    if (lastServer !== null && lastServer !== s){
+      const el = (s === "left") ? $("sideLeft") : $("sideRight");
+      el.classList.remove("flash");
+      void el.offsetWidth;
+      el.classList.add("flash");
+    }
+    lastServer = s;
+
+    $("sideLeft").classList.toggle("serving", s === "left");
+    $("sideRight").classList.toggle("serving", s === "right");
+
+    $("serveLeft").classList.toggle("serve-hidden", s !== "left");
+    $("serveRight").classList.toggle("serve-hidden", s !== "right");
+
+    $("undoBtn").disabled = state.history.length === 0;
+    $("undoBtn").style.opacity = state.history.length === 0 ? 0.5 : 1;
+
+    saveState();
   }
-  return false;
-}
+
+  function adjustGames(which, delta){
+    pushHistory();
+    if (which === "left") state.leftGames = clampScore(state.leftGames + delta);
+    else state.rightGames = clampScore(state.rightGames + delta);
+    render();
+  }
+
+  function maybeAwardGame(){
+    const l = state.leftScore, r = state.rightScore;
+    const diff = Math.abs(l - r);
+    const max = Math.max(l, r);
+
+    if(max >= 11 && diff >= 2){
+      if(l > r) state.leftGames = clampScore(state.leftGames + 1);
+      else state.rightGames = clampScore(state.rightGames + 1);
+
+      if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+
+      const s = currentServer();
+      state.leftScore = 0;
+      state.rightScore = 0;
+      state.startingServer = s;
+      return true;
+    }
+    return false;
+  }
 
   function addPoint(side){
-  pushHistory();
-  if (side === "left") state.leftScore = clampScore(state.leftScore + 1);
-  else state.rightScore = clampScore(state.rightScore + 1);
+    pushHistory();
+    if (side === "left") state.leftScore = clampScore(state.leftScore + 1);
+    else state.rightScore = clampScore(state.rightScore + 1);
 
-  // Haptic tap feedback (Android)
-  if (navigator.vibrate) navigator.vibrate(18);
+    if (navigator.vibrate) navigator.vibrate(18);
 
-  maybeAwardGame();
-  render();
-}
+    maybeAwardGame();
+    render();
+  }
 
   function subPoint(side){
     pushHistory();
@@ -528,37 +570,33 @@ function maybeAwardGame(){
     state.leftScore = prev.leftScore;
     state.rightScore = prev.rightScore;
     state.leftGames = prev.leftGames;
-	state.rightGames = prev.rightGames;
+    state.rightGames = prev.rightGames;
     state.startingServer = prev.startingServer;
     render();
   }
 
-function swapEnds(){
-  pushHistory();
-
-  [state.leftName, state.rightName] = [state.rightName, state.leftName];
-  [state.leftScore, state.rightScore] = [state.rightScore, state.leftScore];
-  [state.leftGames, state.rightGames] = [state.rightGames, state.leftGames];
-
-  state.startingServer = (state.startingServer === "left") ? "right" : "left";
-  render();
-}
-
+  function swapEnds(){
+    pushHistory();
+    [state.leftName, state.rightName] = [state.rightName, state.leftName];
+    [state.leftScore, state.rightScore] = [state.rightScore, state.leftScore];
+    [state.leftGames, state.rightGames] = [state.rightGames, state.leftGames];
+    state.startingServer = (state.startingServer === "left") ? "right" : "left";
+    render();
+  }
 
   function newGame(){
-    // Keep names, reset score, reset history, keep starting server as current server
     const s = currentServer();
     state.history = [];
     state.leftScore = 0;
     state.rightScore = 0;
-    state.startingServer = s; // whoever was about to serve continues to serve first in new game
+    state.startingServer = s;
     render();
   }
 
   function editName(which){
     const current = which === "left" ? state.leftName : state.rightName;
     const next = prompt("Player name:", current);
-    if (next === null) return; // cancelled
+    if (next === null) return;
     pushHistory();
     const cleaned = next.trim().slice(0, 20) || current;
     if (which === "left") state.leftName = cleaned;
@@ -567,45 +605,36 @@ function swapEnds(){
   }
 
   // ----- Wire up events -----
-  // Big tap areas
   $("tapLeft").addEventListener("click", () => addPoint("left"));
   $("tapRight").addEventListener("click", () => addPoint("right"));
 
-  // Plus/minus buttons
   $("leftPlus").addEventListener("click", (e) => { e.stopPropagation(); addPoint("left"); });
   $("rightPlus").addEventListener("click", (e) => { e.stopPropagation(); addPoint("right"); });
   $("leftMinus").addEventListener("click", (e) => { e.stopPropagation(); subPoint("left"); });
   $("rightMinus").addEventListener("click", (e) => { e.stopPropagation(); subPoint("right"); });
 
-  // Name edit
   $("nameLeft").addEventListener("click", () => editName("left"));
   $("nameRight").addEventListener("click", () => editName("right"));
 
-  // Bottom buttons
   $("undoBtn").addEventListener("click", undo);
   $("swapBtn").addEventListener("click", swapEnds);
+
   $("newGameBtn").addEventListener("click", () => {
     if (confirm("Start a new game? (Scores reset to 0–0)")) newGame();
   });
 
-$("serveLeft").addEventListener("click", (e) => {
-  e.stopPropagation();
-  toggleServer();
-});
+  $("newMatchBtn").addEventListener("click", () => {
+    if (confirm("Start a new match? (Resets points and games)")) newMatch();
+  });
 
-$("serveRight").addEventListener("click", (e) => {
-  e.stopPropagation();
-  toggleServer();
-});
+  $("serveLeft").addEventListener("click", (e) => { e.stopPropagation(); toggleServer(); });
+  $("serveRight").addEventListener("click", (e) => { e.stopPropagation(); toggleServer(); });
 
-  // Top +/- buttons: adjust score
-$("leftNamePlus").addEventListener("click", (e) => { e.stopPropagation(); adjustGames("left", +1); });
-$("leftNameMinus").addEventListener("click", (e) => { e.stopPropagation(); adjustGames("left", -1); });
-$("rightNamePlus").addEventListener("click", (e) => { e.stopPropagation(); adjustGames("right", +1); });
-$("rightNameMinus").addEventListener("click", (e) => { e.stopPropagation(); adjustGames("right", -1); });
+  $("leftNamePlus").addEventListener("click", (e) => { e.stopPropagation(); adjustGames("left", +1); });
+  $("leftNameMinus").addEventListener("click", (e) => { e.stopPropagation(); adjustGames("left", -1); });
+  $("rightNamePlus").addEventListener("click", (e) => { e.stopPropagation(); adjustGames("right", +1); });
+  $("rightNameMinus").addEventListener("click", (e) => { e.stopPropagation(); adjustGames("right", -1); });
 
-
-  // Keyboard (desktop convenience)
   window.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") addPoint("left");
     if (e.key === "ArrowRight") addPoint("right");
@@ -616,37 +645,25 @@ $("rightNameMinus").addEventListener("click", (e) => { e.stopPropagation(); adju
 
   // Restore saved match (if any)
   loadState();
-
-  // Initial render
   render();
+
   // ---- Wake Lock (keep screen on during a match) ----
-let wakeLock = null;
-
-async function requestWakeLock(){
-  try {
-    wakeLock = await navigator.wakeLock.request("screen");
-  } catch (err) {
-    console.warn("Wake Lock failed:", err);
+  let wakeLock = null;
+  async function requestWakeLock(){
+    try { wakeLock = await navigator.wakeLock.request("screen"); }
+    catch (err) { console.warn("Wake Lock failed:", err); }
   }
-}
-
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    requestWakeLock();
-  }
-});
-
-// Request on first user interaction (required by browsers)
-document.addEventListener("click", requestWakeLock, { once: true });
-
-  if ("serviceWorker" in navigator) {
-  window.addEventListener("load", async () => {
-    await navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") requestWakeLock();
   });
-}
+  document.addEventListener("click", requestWakeLock, { once: true });
 
-
-
+  // ---- Service Worker ----
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      await navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
+    });
+  }
 })();
 </script>
 </body>
