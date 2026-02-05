@@ -20,8 +20,8 @@
     html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
 
     :root{
-      --bg:#fafffc; /*main bg*/
-      --panel:#fff; /*buttons & labels*/
+      --bg:#fafffc;
+      --panel:#fff;
       --ink:#111;
       --muted:#666;
       --line:#111;
@@ -30,7 +30,7 @@
       --tap: rgba(0,0,0,.06);
       --serve: #e6faef;
       --danger: #b00020;
-      --servebordah: green; /*#45b04c;*/
+      --servebordah: green;
     }
 
     *{box-sizing:border-box}
@@ -102,7 +102,11 @@
     }
     .mini button:active{ background: var(--tap); }
 
+    /* TEAM tag + editable PLAYER name */
     .badge .name{
+      display:flex;
+      align-items:center;
+      gap:6px;
       font-size: 18px;
       font-weight: 800;
       letter-spacing: .3px;
@@ -112,8 +116,29 @@
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 34vw;
+      cursor: pointer;
     }
     .badge .name:active{ background: var(--tap); }
+
+    .teamtag{
+      display:inline-block;
+      padding: 2px 6px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      font-weight: 950;
+      font-size: 12px;
+      letter-spacing: .4px;
+      background: var(--panel);
+      flex: 0 0 auto;
+    }
+
+    .playername{
+      font-weight: 900;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
 
     /* games won within the current SET */
     .set-games{
@@ -285,6 +310,7 @@
       .controls button{ height: 40px; font-size: 26px; }
       .bottom button{ height: 36px; font-size: 12px; }
       .center-set button{ height: 34px; font-size: 13px; }
+      .teamtag{ font-size: 11px; padding: 2px 5px; }
     }
 
     /* Overlays */
@@ -415,7 +441,10 @@
     <div class="top">
       <div class="badge" id="badgeLeft">
         <div class="namewrap">
-          <div class="name" id="nameLeft" title="Tap to edit name">HOME</div>
+          <div class="name" id="nameLeftWrap" title="Tap to edit player name">
+            <span class="teamtag" id="teamTagLeft">HOME</span>
+            <span class="playername" id="nameLeft">HOME</span>
+          </div>
           <div class="set-games" title="Games won in this set"><span id="setGamesLeft">0</span></div>
         </div>
         <div class="mini">
@@ -434,7 +463,10 @@
           <button id="rightSetGameMinus" title="Remove game in set">-</button>
         </div>
         <div class="namewrap">
-          <div class="name" id="nameRight" title="Tap to edit name">AWAY</div>
+          <div class="name" id="nameRightWrap" title="Tap to edit player name">
+            <span class="teamtag" id="teamTagRight">AWAY</span>
+            <span class="playername" id="nameRight">AWAY</span>
+          </div>
           <div class="set-games" title="Games won in this set"><span id="setGamesRight">0</span></div>
         </div>
       </div>
@@ -522,61 +554,74 @@
     Terminology:
     - points: within a GAME (to 11 win-by-2)
     - games: within a SET (best-of-5 -> first to 3 games)
-    - sets: within a MATCH (your "night")
-    - match: the whole session (aggregate score + set history)
+    - match: whole session (aggregate match score + set history)
   */
 
-  // ----- State -----
+  const $ = (id) => document.getElementById(id);
+  const STORAGE_KEY = "ttScoreStateV4"; // team-based state (new key)
+  const SET_GAMES_TO_WIN = 3; // best of 5 games
+
+  // ----- Team-based state -----
+  // HOME/AWAY are the identity. Left/Right are just ends.
   let state = {
-    leftName: "HOME",
-    rightName: "AWAY",
+    homePlayer: "HOME",
+    awayPlayer: "AWAY",
 
-    // points within the current GAME
-    leftPoints: 0,
-    rightPoints: 0,
+    homePoints: 0,
+    awayPoints: 0,
 
-    // games won within the current SET
-    leftSetGames: 0,
-    rightSetGames: 0,
+    homeSetGames: 0,
+    awaySetGames: 0,
 
-    startingServer: "left",
-
-    // set is over (best-of-5 games)
-    setOver: false,
-
-    // match score = total games won across all sets (tied to ends; SWAP also swaps this)
     matchHomeGames: 0,
     matchAwayGames: 0,
 
-    // completed sets across the match
+    // Which TEAM is on the LEFT end currently ("home" | "away")
+    leftTeam: "home",
+
+    // Server is tracked in END-space ("left" | "right")
+    startingServerSide: "left",
+
+    setOver: false,
+
     setsHistory: [],
 
     // undo stack (not persisted)
     history: []
   };
 
-  // ----- Helpers -----
-  const $ = (id) => document.getElementById(id);
+  function cloneState(s){ return JSON.parse(JSON.stringify(s)); }
 
-  function cloneState(s){
-    return JSON.parse(JSON.stringify(s));
+  function otherTeam(team){ return team === "home" ? "away" : "home"; }
+
+  function teamOnSide(side){
+    // side: "left" | "right"
+    return (side === "left") ? state.leftTeam : otherTeam(state.leftTeam);
   }
 
-  const STORAGE_KEY = "ttScoreStateV3"; // renamed variables => new storage key
+  function clampScore(n){
+    return Math.max(0, Math.min(99, n));
+  }
 
   function saveState(){
     try{
       const payload = {
-        leftName: state.leftName,
-        rightName: state.rightName,
-        leftPoints: state.leftPoints,
-        rightPoints: state.rightPoints,
-        leftSetGames: state.leftSetGames,
-        rightSetGames: state.rightSetGames,
-        startingServer: state.startingServer,
-        setOver: state.setOver,
+        homePlayer: state.homePlayer,
+        awayPlayer: state.awayPlayer,
+
+        homePoints: state.homePoints,
+        awayPoints: state.awayPoints,
+
+        homeSetGames: state.homeSetGames,
+        awaySetGames: state.awaySetGames,
+
         matchHomeGames: state.matchHomeGames,
         matchAwayGames: state.matchAwayGames,
+
+        leftTeam: state.leftTeam,
+        startingServerSide: state.startingServerSide,
+
+        setOver: state.setOver,
         setsHistory: state.setsHistory
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -590,34 +635,69 @@
       const s = JSON.parse(raw);
       if(!s || typeof s !== "object") return;
 
-      state.leftName = typeof s.leftName === "string" ? s.leftName : state.leftName;
-      state.rightName = typeof s.rightName === "string" ? s.rightName : state.rightName;
+      state.homePlayer = typeof s.homePlayer === "string" ? s.homePlayer : state.homePlayer;
+      state.awayPlayer = typeof s.awayPlayer === "string" ? s.awayPlayer : state.awayPlayer;
 
-      state.leftPoints = Number.isFinite(s.leftPoints) ? s.leftPoints : state.leftPoints;
-      state.rightPoints = Number.isFinite(s.rightPoints) ? s.rightPoints : state.rightPoints;
+      state.homePoints = Number.isFinite(s.homePoints) ? s.homePoints : state.homePoints;
+      state.awayPoints = Number.isFinite(s.awayPoints) ? s.awayPoints : state.awayPoints;
 
-      state.leftSetGames = Number.isFinite(s.leftSetGames) ? s.leftSetGames : state.leftSetGames;
-      state.rightSetGames = Number.isFinite(s.rightSetGames) ? s.rightSetGames : state.rightSetGames;
-
-      state.startingServer = (s.startingServer === "left" || s.startingServer === "right") ? s.startingServer : state.startingServer;
-
-      state.setOver = !!s.setOver;
+      state.homeSetGames = Number.isFinite(s.homeSetGames) ? s.homeSetGames : state.homeSetGames;
+      state.awaySetGames = Number.isFinite(s.awaySetGames) ? s.awaySetGames : state.awaySetGames;
 
       state.matchHomeGames = Number.isFinite(s.matchHomeGames) ? s.matchHomeGames : 0;
       state.matchAwayGames = Number.isFinite(s.matchAwayGames) ? s.matchAwayGames : 0;
 
+      state.leftTeam = (s.leftTeam === "home" || s.leftTeam === "away") ? s.leftTeam : state.leftTeam;
+      state.startingServerSide = (s.startingServerSide === "left" || s.startingServerSide === "right") ? s.startingServerSide : state.startingServerSide;
+
+      state.setOver = !!s.setOver;
       state.setsHistory = Array.isArray(s.setsHistory) ? s.setsHistory : [];
 
-      // Never restore undo history
       state.history = [];
     }catch(e){}
   }
 
-  const SET_GAMES_TO_WIN = 3; // best of 5 games
+  function pushHistory(){
+    state.history.push(cloneState(state));
+  }
 
-  function showSetOverlay(winnerName, winnerGames, loserGames){
+  // ----- Serve logic (end-space) -----
+  function totalPointsPlayed(){
+    return state.homePoints + state.awayPoints;
+  }
+
+  function serveEvery(){
+    // at 10-10+ alternate each point
+    if (state.homePoints >= 10 && state.awayPoints >= 10) return 1;
+    return 2;
+  }
+
+  function currentServerSide(){
+    const block = serveEvery();          // 2 normally, 1 at deuce
+    const t = totalPointsPlayed();       // points already played
+    const cycle = block * 2;             // 4 or 2
+    const inFirstHalf = (t % cycle) < block;
+
+    if (state.startingServerSide === "left") return inFirstHalf ? "left" : "right";
+    return inFirstHalf ? "right" : "left";
+  }
+
+  function toggleServer(){
+    pushHistory();
+    const now = currentServerSide();
+    const other = now === "left" ? "right" : "left";
+    const block = serveEvery();
+    const flips = Math.floor(totalPointsPlayed() / block);
+
+    // adjust startingServerSide so that "other" becomes server now
+    state.startingServerSide = (flips % 2 === 0) ? other : now;
+    render();
+  }
+
+  // ----- Overlays / history -----
+  function showSetOverlay(winnerLabel, winnerGames, loserGames){
     $("setTitle").textContent = "Set Over";
-    $("setSub").textContent = `${winnerName} wins ${winnerGames}\u2013${loserGames}`;
+    $("setSub").textContent = `${winnerLabel} wins ${winnerGames}\u2013${loserGames}`;
     $("setOverlay").classList.add("show");
     $("setOverlay").setAttribute("aria-hidden", "false");
   }
@@ -676,150 +756,6 @@
     $("setHistoryMeta").textContent = `Sets recorded: ${state.setsHistory.length}`;
   }
 
-  function pushHistory(){
-    state.history.push(cloneState({
-      leftName: state.leftName,
-      rightName: state.rightName,
-      leftPoints: state.leftPoints,
-      rightPoints: state.rightPoints,
-      leftSetGames: state.leftSetGames,
-      rightSetGames: state.rightSetGames,
-      startingServer: state.startingServer,
-      setOver: state.setOver,
-      matchHomeGames: state.matchHomeGames,
-      matchAwayGames: state.matchAwayGames,
-      setsHistory: state.setsHistory
-    }));
-  }
-
-  function newMatch(){
-    if (!confirm("Start a new match? (Resets everything)")) return;
-
-    // clear undo history
-    state.history = [];
-
-    // reset names
-    state.leftName = "HOME";
-    state.rightName = "AWAY";
-
-    // reset points and set games
-    state.leftPoints = 0;
-    state.rightPoints = 0;
-    state.leftSetGames = 0;
-    state.rightSetGames = 0;
-
-    // reset match totals and history
-    state.matchHomeGames = 0;
-    state.matchAwayGames = 0;
-    state.setsHistory = [];
-
-    // reset server + overlays
-    state.startingServer = "left";
-    state.setOver = false;
-
-    hideSetOverlay?.();
-    closeSetHistory?.();
-
-    render();
-  }
-
-  function newSet(){
-    // resets points + set games, keeps match totals + history
-    state.history = [];
-    state.leftPoints = 0;
-    state.rightPoints = 0;
-    state.leftSetGames = 0;
-    state.rightSetGames = 0;
-    state.startingServer = "left";
-    state.setOver = false;
-    hideSetOverlay();
-    render();
-  }
-
-  function totalPointsPlayed(){
-    return state.leftPoints + state.rightPoints;
-  }
-
-  function serveEvery(){
-    // At 10-10 or beyond, serve alternates every 1 point
-    if (state.leftPoints >= 10 && state.rightPoints >= 10) return 1;
-    return 2;
-  }
-
-  function currentServer(){
-    const block = serveEvery();
-    const t = totalPointsPlayed();
-    const cycle = block * 2;
-    const inFirstHalf = (t % cycle) < block;
-
-    if (state.startingServer === "left") return inFirstHalf ? "left" : "right";
-    return inFirstHalf ? "right" : "left";
-  }
-
-  function toggleServer(){
-    pushHistory();
-    const now = currentServer();
-    const other = now === "left" ? "right" : "left";
-    const block = serveEvery();
-    const flips = Math.floor(totalPointsPlayed() / block);
-
-    if (flips % 2 === 0) state.startingServer = other;
-    else state.startingServer = now;
-
-    render();
-  }
-
-  function clampScore(n){
-    return Math.max(0, Math.min(99, n));
-  }
-
-  let lastServer = null;
-
-  function render(){
-    $("nameLeft").textContent = state.leftName;
-    $("nameRight").textContent = state.rightName;
-
-    $("pointsLeft").textContent = state.leftPoints;
-    $("pointsRight").textContent = state.rightPoints;
-
-    $("setGamesLeft").textContent = state.leftSetGames;
-    $("setGamesRight").textContent = state.rightSetGames;
-
-    $("matchHome").textContent = state.matchHomeGames;
-    $("matchAway").textContent = state.matchAwayGames;
-
-    const s = currentServer();
-
-    if (lastServer !== null && lastServer !== s){
-      const el = (s === "left") ? $("sideLeft") : $("sideRight");
-      el.classList.remove("flash");
-      void el.offsetWidth;
-      el.classList.add("flash");
-    }
-    lastServer = s;
-
-    if (state.setOver) $("setOverlay").classList.add("show");
-    else $("setOverlay").classList.remove("show");
-
-    $("sideLeft").classList.toggle("serving", s === "left");
-    $("sideRight").classList.toggle("serving", s === "right");
-
-    $("serveLeft").classList.toggle("serve-hidden", s !== "left");
-    $("serveRight").classList.toggle("serve-hidden", s !== "right");
-
-    $("undoBtn").disabled = state.history.length === 0;
-    $("undoBtn").style.opacity = state.history.length === 0 ? 0.5 : 1;
-
-    saveState();
-  }
-
-  function adjustSetGames(which, delta){
-    pushHistory();
-    if (which === "left") state.leftSetGames = clampScore(state.leftSetGames + delta);
-    else state.rightSetGames = clampScore(state.rightSetGames + delta);
-    render();
-  }
-
   function recordFinishedSet(entry){
     state.setsHistory = state.setsHistory || [];
     state.setsHistory.push({
@@ -832,76 +768,148 @@
     });
   }
 
+  function teamLabel(team){
+    // Display-friendly label for overlays/history
+    const player = (team === "home") ? state.homePlayer : state.awayPlayer;
+    const tag = (team === "home") ? "HOME" : "AWAY";
+    // If player is identical to tag, just show tag; otherwise show "Ben (HOME)"
+    return (player && player.toUpperCase() !== tag) ? `${player} (${tag})` : tag;
+  }
+
   function checkSetEnd(){
-    if (state.leftSetGames >= SET_GAMES_TO_WIN) {
+    if (state.homeSetGames >= SET_GAMES_TO_WIN) {
       state.setOver = true;
 
       recordFinishedSet({
-        playerA: state.leftName,
-        playerB: state.rightName,
-        aGames: state.leftSetGames,
-        bGames: state.rightSetGames,
-        winnerName: state.leftName
+        playerA: teamLabel("home"),
+        playerB: teamLabel("away"),
+        aGames: state.homeSetGames,
+        bGames: state.awaySetGames,
+        winnerName: teamLabel("home")
       });
 
-      showSetOverlay(state.leftName, state.leftSetGames, state.rightSetGames);
+      showSetOverlay(teamLabel("home"), state.homeSetGames, state.awaySetGames);
       return true;
     }
 
-    if (state.rightSetGames >= SET_GAMES_TO_WIN) {
+    if (state.awaySetGames >= SET_GAMES_TO_WIN) {
       state.setOver = true;
 
       recordFinishedSet({
-        playerA: state.leftName,
-        playerB: state.rightName,
-        aGames: state.leftSetGames,
-        bGames: state.rightSetGames,
-        winnerName: state.rightName
+        playerA: teamLabel("home"),
+        playerB: teamLabel("away"),
+        aGames: state.homeSetGames,
+        bGames: state.awaySetGames,
+        winnerName: teamLabel("away")
       });
 
-      showSetOverlay(state.rightName, state.rightSetGames, state.leftSetGames);
+      showSetOverlay(teamLabel("away"), state.awaySetGames, state.homeSetGames);
       return true;
     }
 
     return false;
   }
 
+  // ----- Core actions -----
+  function newMatch(){
+    if (!confirm("Start a new match? (Resets everything)")) return;
+
+    state.history = [];
+
+    state.homePlayer = "HOME";
+    state.awayPlayer = "AWAY";
+
+    state.homePoints = 0;
+    state.awayPoints = 0;
+
+    state.homeSetGames = 0;
+    state.awaySetGames = 0;
+
+    state.matchHomeGames = 0;
+    state.matchAwayGames = 0;
+
+    state.setsHistory = [];
+
+    state.leftTeam = "home";
+    state.startingServerSide = "left";
+    state.setOver = false;
+
+    hideSetOverlay();
+    closeSetHistory();
+    render();
+  }
+
+  function newSet(){
+    // resets points + set games, keeps match totals + history + player names
+    state.history = [];
+
+    state.homePoints = 0;
+    state.awayPoints = 0;
+
+    state.homeSetGames = 0;
+    state.awaySetGames = 0;
+
+    state.leftTeam = "home";
+    state.startingServerSide = "left";
+    state.setOver = false;
+
+    hideSetOverlay();
+    render();
+  }
+
+  function swapEnds(){
+    pushHistory();
+    state.leftTeam = otherTeam(state.leftTeam);
+    // flip server end so serve highlight stays with the physical end
+    state.startingServerSide = (state.startingServerSide === "left") ? "right" : "left";
+    render();
+  }
+
+  function newGame(){
+    if (state.setOver) return;
+    const s = currentServerSide();
+    state.history = [];
+    state.homePoints = 0;
+    state.awayPoints = 0;
+    // keep whoever was about to serve
+    state.startingServerSide = s;
+    render();
+  }
+
+  function adjustSetGames(team, delta){
+    pushHistory();
+    if (team === "home") state.homeSetGames = clampScore(state.homeSetGames + delta);
+    else state.awaySetGames = clampScore(state.awaySetGames + delta);
+    render();
+  }
+
   function maybeAwardGame(){
-    const l = state.leftPoints, r = state.rightPoints;
-    const diff = Math.abs(l - r);
-    const max = Math.max(l, r);
+    const diff = Math.abs(state.homePoints - state.awayPoints);
+    const max = Math.max(state.homePoints, state.awayPoints);
 
-    // game ends at 11+ with win-by-2
     if (max >= 11 && diff >= 2){
+      const winnerTeam = (state.homePoints > state.awayPoints) ? "home" : "away";
 
-      // award the game (within this set) + add 1 to MATCH total for the winning side
-      if (l > r) {
-        state.leftSetGames++;
+      if (winnerTeam === "home") {
+        state.homeSetGames++;
         state.matchHomeGames++;
       } else {
-        state.rightSetGames++;
+        state.awaySetGames++;
         state.matchAwayGames++;
       }
 
-      // if the set ended, do NOT swap ends afterwards
-      if (checkSetEnd()) {
-        state.leftPoints = 0;
-        state.rightPoints = 0;
+      // if the set ended, stop and show overlay
+      if (checkSetEnd()){
+        state.homePoints = 0;
+        state.awayPoints = 0;
         return true;
       }
 
-      // otherwise swap ends for the next game (swap everything side-attached)
-      [state.leftName, state.rightName] = [state.rightName, state.leftName];
-      [state.leftSetGames, state.rightSetGames] = [state.rightSetGames, state.leftSetGames];
-      [state.matchHomeGames, state.matchAwayGames] = [state.matchAwayGames, state.matchHomeGames];
-
-      // reset points for next game
-      state.leftPoints = 0;
-      state.rightPoints = 0;
-
-      // flip server side so currentServer() remains consistent after swap
-      state.startingServer = (state.startingServer === "left") ? "right" : "left";
-
+      // otherwise: swap ends for next game (common TT flow)
+      state.homePoints = 0;
+      state.awayPoints = 0;
+      state.leftTeam = otherTeam(state.leftTeam);
+      state.startingServerSide = (state.startingServerSide === "left") ? "right" : "left";
       return true;
     }
     return false;
@@ -911,8 +919,9 @@
     if (state.setOver) return;
 
     pushHistory();
-    if (side === "left") state.leftPoints = clampScore(state.leftPoints + 1);
-    else state.rightPoints = clampScore(state.rightPoints + 1);
+    const team = teamOnSide(side); // "home" | "away"
+    if (team === "home") state.homePoints = clampScore(state.homePoints + 1);
+    else state.awayPoints = clampScore(state.awayPoints + 1);
 
     maybeAwardGame();
     render();
@@ -922,8 +931,9 @@
     if (state.setOver) return;
 
     pushHistory();
-    if (side === "left") state.leftPoints = clampScore(state.leftPoints - 1);
-    else state.rightPoints = clampScore(state.rightPoints - 1);
+    const team = teamOnSide(side);
+    if (team === "home") state.homePoints = clampScore(state.homePoints - 1);
+    else state.awayPoints = clampScore(state.awayPoints - 1);
 
     render();
   }
@@ -935,55 +945,76 @@
     render();
   }
 
-  function swapEnds(){
-    pushHistory();
-
-    // swap sides
-    [state.leftName, state.rightName] = [state.rightName, state.leftName];
-    [state.leftPoints, state.rightPoints] = [state.rightPoints, state.leftPoints];
-    [state.leftSetGames, state.rightSetGames] = [state.rightSetGames, state.leftSetGames];
-
-    // swap match totals too (your requested behaviour)
-    [state.matchHomeGames, state.matchAwayGames] = [state.matchAwayGames, state.matchHomeGames];
-
-    state.startingServer = (state.startingServer === "left") ? "right" : "left";
-
-    render();
-  }
-
-  function newGame(){
+  function editPlayerName(side){
     if (state.setOver) return;
-    const s = currentServer();
-    state.history = [];
-    state.leftPoints = 0;
-    state.rightPoints = 0;
-    state.startingServer = s;
-    render();
-  }
 
-  function isBeforeSetStarts(){
-    return !state.setOver && state.leftPoints === 0 && state.rightPoints === 0 && state.leftSetGames === 0 && state.rightSetGames === 0;
-  }
+    const team = teamOnSide(side);
+    const current = (team === "home") ? state.homePlayer : state.awayPlayer;
+    const promptLabel = (team === "home") ? "HOME player name:" : "AWAY player name:";
 
-  function editName(which){
-    if (state.setOver) return;
-    const current = which === "left" ? state.leftName : state.rightName;
-    const next = prompt("Player name:", current);
+    const next = prompt(promptLabel, current);
     if (next === null) return;
+
     pushHistory();
     const cleaned = next.trim().slice(0, 20) || current;
 
-    if (which === "left") state.leftName = cleaned;
-    else state.rightName = cleaned;
+    if (team === "home") state.homePlayer = cleaned;
+    else state.awayPlayer = cleaned;
 
-    // no extra tracking required; history uses current names at set end
-    if (isBeforeSetStarts()) render();
-    else render();
+    render();
   }
 
-  $("hintText").textContent =
-  `Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). ` +
-  `Tap the match score to view set history. (v${APP_VERSION})`;
+  // ----- Render -----
+  let lastServer = null;
+
+  function render(){
+    const leftTeam = teamOnSide("left");
+    const rightTeam = teamOnSide("right");
+
+    // fixed team tags
+    $("teamTagLeft").textContent = (leftTeam === "home") ? "HOME" : "AWAY";
+    $("teamTagRight").textContent = (rightTeam === "home") ? "HOME" : "AWAY";
+
+    // player names follow their team
+    $("nameLeft").textContent = (leftTeam === "home") ? state.homePlayer : state.awayPlayer;
+    $("nameRight").textContent = (rightTeam === "home") ? state.homePlayer : state.awayPlayer;
+
+    // points follow their team
+    $("pointsLeft").textContent = (leftTeam === "home") ? state.homePoints : state.awayPoints;
+    $("pointsRight").textContent = (rightTeam === "home") ? state.homePoints : state.awayPoints;
+
+    // set games follow their team
+    $("setGamesLeft").textContent = (leftTeam === "home") ? state.homeSetGames : state.awaySetGames;
+    $("setGamesRight").textContent = (rightTeam === "home") ? state.homeSetGames : state.awaySetGames;
+
+    // match score is ALWAYS HOME–AWAY (never swapped)
+    $("matchHome").textContent = state.matchHomeGames;
+    $("matchAway").textContent = state.matchAwayGames;
+
+    const s = currentServerSide();
+
+    if (lastServer !== null && lastServer !== s){
+      const el = (s === "left") ? $("sideLeft") : $("sideRight");
+      el.classList.remove("flash");
+      void el.offsetWidth;
+      el.classList.add("flash");
+    }
+    lastServer = s;
+
+    $("sideLeft").classList.toggle("serving", s === "left");
+    $("sideRight").classList.toggle("serving", s === "right");
+    $("serveLeft").classList.toggle("serve-hidden", s !== "left");
+    $("serveRight").classList.toggle("serve-hidden", s !== "right");
+
+    $("undoBtn").disabled = state.history.length === 0;
+    $("undoBtn").style.opacity = state.history.length === 0 ? 0.5 : 1;
+
+    $("hintText").textContent =
+      `Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). ` +
+      `Tap the match score to view set history. (v${APP_VERSION})`;
+
+    saveState();
+  }
 
   // ----- Wire up events -----
   $("tapLeft").addEventListener("click", () => addPoint("left"));
@@ -994,8 +1025,8 @@
   $("leftPointMinus").addEventListener("click", (e) => { e.stopPropagation(); subPoint("left"); });
   $("rightPointMinus").addEventListener("click", (e) => { e.stopPropagation(); subPoint("right"); });
 
-  $("nameLeft").addEventListener("click", () => editName("left"));
-  $("nameRight").addEventListener("click", () => editName("right"));
+  $("nameLeftWrap").addEventListener("click", () => editPlayerName("left"));
+  $("nameRightWrap").addEventListener("click", () => editPlayerName("right"));
 
   $("undoBtn").addEventListener("click", undo);
   $("swapEndsBtn").addEventListener("click", swapEnds);
@@ -1018,10 +1049,11 @@
   $("serveLeft").addEventListener("click", (e) => { e.stopPropagation(); toggleServer(); });
   $("serveRight").addEventListener("click", (e) => { e.stopPropagation(); toggleServer(); });
 
-  $("leftSetGamePlus").addEventListener("click", (e) => { e.stopPropagation(); adjustSetGames("left", +1); });
-  $("leftSetGameMinus").addEventListener("click", (e) => { e.stopPropagation(); adjustSetGames("left", -1); });
-  $("rightSetGamePlus").addEventListener("click", (e) => { e.stopPropagation(); adjustSetGames("right", +1); });
-  $("rightSetGameMinus").addEventListener("click", (e) => { e.stopPropagation(); adjustSetGames("right", -1); });
+  // +/- set games should adjust the TEAM that is on that end
+  $("leftSetGamePlus").addEventListener("click", (e) => { e.stopPropagation(); adjustSetGames(teamOnSide("left"), +1); });
+  $("leftSetGameMinus").addEventListener("click", (e) => { e.stopPropagation(); adjustSetGames(teamOnSide("left"), -1); });
+  $("rightSetGamePlus").addEventListener("click", (e) => { e.stopPropagation(); adjustSetGames(teamOnSide("right"), +1); });
+  $("rightSetGameMinus").addEventListener("click", (e) => { e.stopPropagation(); adjustSetGames(teamOnSide("right"), -1); });
 
   // Set History UI
   $("matchScore").addEventListener("click", openSetHistory);
@@ -1045,10 +1077,8 @@
     if (e.key.toLowerCase() === "h") openSetHistory();
   });
 
-  // Restore saved match (if any)
+  // Restore saved state
   loadState();
-
-  // Initial render
   render();
 
   // ---- Wake Lock ----
