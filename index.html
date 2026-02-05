@@ -694,6 +694,10 @@
     if(confirm("Start a new night? (Clears night score and set history)")){
       state.nightHomePoints = 0;
       state.nightAwayPoints = 0;
+      state.leftScore = 0;
+      state.rightScore = 0;
+      state.leftGames = 0;
+      state.rightGames = 0;
       state.setHistory = [];
       render();
       closeHistory();
