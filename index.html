@@ -290,6 +290,7 @@
       .center-match button{ height: 34px; font-size: 13px; }
     }
 
+    /* Overlays */
     .overlay{
       position: fixed;
       inset: 0;
@@ -304,40 +305,45 @@
       background: rgba(0,0,0,0.55);
       z-index: 9999;
     }
-
     .overlay.show{ display: flex; }
 
     .overlay-card{
       width: min(520px, 92vw);
+      max-height: min(78svh, 520px);
+      overflow: hidden;
+      display:flex;
+      flex-direction:column;
       background: var(--panel);
       border: 4px solid var(--line);
       border-radius: 18px;
       box-shadow: var(--shadow);
-      padding: 16px 14px;
+      padding: 14px 12px;
       text-align: center;
     }
 
     .overlay-title{
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 950;
       margin-bottom: 6px;
     }
 
     .overlay-sub{
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 800;
       color: var(--muted);
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     .overlay-actions{
       display: flex;
       gap: 10px;
       justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
     }
 
     .overlay-actions button{
-      height: 44px;
+      height: 42px;
       padding: 0 14px;
       font-size: 14px;
       font-weight: 900;
@@ -346,27 +352,64 @@
       background: var(--panel);
       cursor: pointer;
       box-shadow: var(--shadow);
+      white-space: nowrap;
     }
 
     .overlay-actions button:active{ background: var(--tap); }
 
+    /* Very small compact night score (tap to view history) */
     .nightScore{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size: 22px;
-  font-weight: 950;
-  min-width: 90px;
-  border: 3px solid var(--line);
-  border-radius: 14px;
-  background: var(--panel);
-  box-shadow: var(--shadow);
-}
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 56px;
+      height: 30px;
+      padding: 0 6px;
+      font-size: 13px;
+      font-weight: 900;
+      border: 3px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      flex: 0 0 auto;
+      cursor: pointer;
+      user-select: none;
+    }
+    .nightScore:active{ background: var(--tap); }
+    .nightScore .dash{ margin: 0 3px; }
 
-.nightScore .dash{
-  margin: 0 6px;
-}
+    @media (max-width: 520px){
+      .nightScore{ height: 28px; min-width: 52px; font-size: 12px; padding: 0 6px; }
+      .nightScore .dash{ margin: 0 2px; }
+    }
 
+    /* History list */
+    .historyWrap{
+      flex: 1;
+      overflow: auto;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      text-align:left;
+      background: rgba(0,0,0,.02);
+    }
+    .historyRow{
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 8px 6px;
+      border-bottom: 2px solid rgba(0,0,0,.08);
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .historyRow:last-child{ border-bottom: none; }
+    .historyMeta{
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+      margin-top: 8px;
+      text-align:center;
+    }
   </style>
 </head>
 
@@ -383,11 +426,11 @@
           <button id="leftNameMinus" title="Remove game">-</button>
         </div>
       </div>
-      <div class="nightScore" id="nightScore">
-        <span id="nightHome">0</span>
-        <span class="dash">–</span>
-        <span id="nightAway">0</span>
+
+      <div class="nightScore" id="nightScore" title="Night score (games won). Tap for history.">
+        <span id="nightHome">0</span><span class="dash">–</span><span id="nightAway">0</span>
       </div>
+
       <div class="badge" id="badgeRight">
         <div class="mini">
           <button id="rightNamePlus" title="Add game">+</button>
@@ -439,18 +482,36 @@
     </div>
 
     <div class="hint">
-      Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). Your match is saved automatically.
+      Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). Tap the night score to view set history.
     </div>
   </div>
 
+  <!-- Match-end overlay -->
   <div class="overlay" id="matchOverlay" aria-hidden="true">
     <div class="overlay-card">
       <div class="overlay-title" id="matchTitle">Match Over</div>
       <div class="overlay-sub" id="matchSub">HOME wins 3–0</div>
+
       <div class="overlay-actions">
         <button id="overlayNewMatchBtn">NEW MATCH</button>
         <button id="newNightBtn">NEW NIGHT</button>
         <button id="overlayCloseBtn">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History overlay -->
+  <div class="overlay" id="historyOverlay" aria-hidden="true">
+    <div class="overlay-card">
+      <div class="overlay-title">Night History</div>
+      <div class="overlay-sub" id="historySub">Night score: 0–0</div>
+
+      <div class="historyWrap" id="historyList"></div>
+      <div class="historyMeta" id="historyMeta">Tap CLOSE to return.</div>
+
+      <div class="overlay-actions">
+        <button id="historyCloseBtn">CLOSE</button>
+        <button id="historyClearBtn">CLEAR HISTORY</button>
       </div>
     </div>
   </div>
@@ -466,9 +527,23 @@
     leftGames: 0,
     rightGames: 0,
     startingServer: "left",
+
     matchOver: false,
+
+    // Night score = total games won across all sets
     nightHomePoints: 0,
     nightAwayPoints: 0,
+
+    // Set history across the night
+    setHistory: [],
+
+    // Track who the set is between (names at the start of the set)
+    setPlayerA: "HOME",
+    setPlayerB: "AWAY",
+
+    // Guard to avoid double-recording a finished set
+    setRecorded: false,
+
     history: []
   };
 
@@ -479,7 +554,7 @@
     return JSON.parse(JSON.stringify(s));
   }
 
-  const STORAGE_KEY = "ttScoreStateV1";
+  const STORAGE_KEY = "ttScoreStateV2"; // bump key to avoid old broken states
 
   function saveState(){
     try{
@@ -493,7 +568,11 @@
         startingServer: state.startingServer,
         matchOver: state.matchOver,
         nightHomePoints: state.nightHomePoints,
-        nightAwayPoints: state.nightAwayPoints
+        nightAwayPoints: state.nightAwayPoints,
+        setHistory: state.setHistory,
+        setPlayerA: state.setPlayerA,
+        setPlayerB: state.setPlayerB,
+        setRecorded: state.setRecorded
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     }catch(e){}
@@ -514,19 +593,25 @@
       state.leftGames = Number.isFinite(s.leftGames) ? s.leftGames : state.leftGames;
       state.rightGames = Number.isFinite(s.rightGames) ? s.rightGames : state.rightGames;
       state.startingServer = (s.startingServer === "left" || s.startingServer === "right") ? s.startingServer : state.startingServer;
+
       state.nightHomePoints = Number.isFinite(s.nightHomePoints) ? s.nightHomePoints : 0;
       state.nightAwayPoints = Number.isFinite(s.nightAwayPoints) ? s.nightAwayPoints : 0;
+
+      state.setHistory = Array.isArray(s.setHistory) ? s.setHistory : [];
+      state.setPlayerA = typeof s.setPlayerA === "string" ? s.setPlayerA : state.leftName;
+      state.setPlayerB = typeof s.setPlayerB === "string" ? s.setPlayerB : state.rightName;
+      state.setRecorded = !!s.setRecorded;
+
+      // Never restore undo history
       state.history = [];
     }catch(e){}
   }
 
   const MATCH_GAMES_TO_WIN = 3; // best of 5
 
-  function showMatchOverlay(winnerSide){
-    const winnerName = winnerSide === "left" ? state.leftName : state.rightName;
-    const l = state.leftGames, r = state.rightGames;
-    $("matchTitle").textContent = "Match Over";
-    $("matchSub").textContent = `${winnerName} wins ${l}\u2013${r}`;
+  function showMatchOverlay(winnerName, aGames, bGames){
+    $("matchTitle").textContent = "Set Over";
+    $("matchSub").textContent = `${winnerName} wins ${aGames}\u2013${bGames}`;
     $("matchOverlay").classList.add("show");
     $("matchOverlay").setAttribute("aria-hidden", "false");
   }
@@ -536,20 +621,54 @@
     $("matchOverlay").setAttribute("aria-hidden", "true");
   }
 
-  function checkMatchEnd(){
-    if (state.leftGames >= MATCH_GAMES_TO_WIN) {
-      state.matchOver = true;
-      showMatchOverlay("left");
-      return true;
-    }
-    if (state.rightGames >= MATCH_GAMES_TO_WIN) {
-      state.matchOver = true;
-      showMatchOverlay("right");
-      return true;
-    }
-    return false;
+  function openHistory(){
+    renderHistory();
+    $("historyOverlay").classList.add("show");
+    $("historyOverlay").setAttribute("aria-hidden", "false");
   }
 
+  function closeHistory(){
+    $("historyOverlay").classList.remove("show");
+    $("historyOverlay").setAttribute("aria-hidden", "true");
+  }
+
+  function formatTime(ts){
+    try{
+      const d = new Date(ts);
+      const hh = String(d.getHours()).padStart(2,"0");
+      const mm = String(d.getMinutes()).padStart(2,"0");
+      return `${hh}:${mm}`;
+    }catch{
+      return "";
+    }
+  }
+
+  function renderHistory(){
+    $("historySub").textContent = `Night score: ${state.nightHomePoints}\u2013${state.nightAwayPoints}`;
+
+    const list = $("historyList");
+    const items = Array.isArray(state.setHistory) ? state.setHistory.slice().reverse() : [];
+    if(items.length === 0){
+      list.innerHTML = `<div class="historyRow"><span>No sets recorded yet.</span><span></span></div>`;
+      $("historyMeta").textContent = "Finish a set (best of 5 games) to add it here.";
+      return;
+    }
+
+    list.innerHTML = items.map((it, idx) => {
+      const time = it.endedAt ? formatTime(it.endedAt) : "";
+      const label = `${it.playerA} vs ${it.playerB}`;
+      const score = `${it.aGames}\u2013${it.bGames}`;
+      const winner = it.winnerName ? `(${it.winnerName})` : "";
+      return `
+        <div class="historyRow">
+          <span>${label} <span style="color:var(--muted); font-weight:800;">${winner}</span></span>
+          <span style="white-space:nowrap;">${score} <span style="color:var(--muted); font-weight:800;">${time}</span></span>
+        </div>
+      `;
+    }).join("");
+
+    $("historyMeta").textContent = `Sets recorded: ${state.setHistory.length}`;
+  }
 
   function pushHistory(){
     state.history.push(cloneState({
@@ -560,8 +679,25 @@
       leftGames: state.leftGames,
       rightGames: state.rightGames,
       startingServer: state.startingServer,
-      matchOver: state.matchOver
+      matchOver: state.matchOver,
+      nightHomePoints: state.nightHomePoints,
+      nightAwayPoints: state.nightAwayPoints,
+      setHistory: state.setHistory,
+      setPlayerA: state.setPlayerA,
+      setPlayerB: state.setPlayerB,
+      setRecorded: state.setRecorded
     }));
+  }
+
+  function newNight(){
+    pushHistory();
+    if(confirm("Start a new night? (Clears night score and set history)")){
+      state.nightHomePoints = 0;
+      state.nightAwayPoints = 0;
+      state.setHistory = [];
+      render();
+      closeHistory();
+    }
   }
 
   function newMatch(){
@@ -574,6 +710,12 @@
     state.rightGames = 0;
     state.startingServer = "left";
     state.matchOver = false;
+    state.setRecorded = false;
+
+    // Track who the set is between (can be edited before play starts)
+    state.setPlayerA = state.leftName;
+    state.setPlayerB = state.rightName;
+
     hideMatchOverlay();
     render();
   }
@@ -593,11 +735,8 @@
     const cycle = block * 2;
     const inFirstHalf = (t % cycle) < block;
 
-    if (state.startingServer === "left") {
-      return inFirstHalf ? "left" : "right";
-    } else {
-      return inFirstHalf ? "right" : "left";
-    }
+    if (state.startingServer === "left") return inFirstHalf ? "left" : "right";
+    return inFirstHalf ? "right" : "left";
   }
 
   function toggleServer(){
@@ -627,6 +766,7 @@
 
     $("gamesLeft").textContent = state.leftGames;
     $("gamesRight").textContent = state.rightGames;
+
     $("nightHome").textContent = state.nightHomePoints;
     $("nightAway").textContent = state.nightAwayPoints;
 
@@ -662,43 +802,82 @@
     render();
   }
 
-  function maybeAwardGame(){
-  const l = state.leftScore, r = state.rightScore;
-  const diff = Math.abs(l - r);
-  const max = Math.max(l, r);
+  function recordFinishedSet(winnerSide){
+    if (state.setRecorded) return;
+    state.setRecorded = true;
 
-  if (max >= 11 && diff >= 2){
+    // Set score is tracked in leftGames/rightGames, but we want it against the players at set start.
+    // IMPORTANT: Because you swap ends after each game, state.leftName/state.rightName may have swapped.
+    // The simplest reliable record is just the two start names and final games totals.
+    const a = state.setPlayerA || "HOME";
+    const b = state.setPlayerB || "AWAY";
+    const aGames = state.leftGames;
+    const bGames = state.rightGames;
 
-    // Award the game
-    if(l > r){
-      state.leftGames++;
-      state.nightHomePoints++;   // ⭐ add
-    }else{
-      state.rightGames++;
-      state.nightAwayPoints++;   // ⭐ add
-    }
+    // Winner name:
+    const winnerName = (winnerSide === "left") ? a : b;
 
-
-    // Swap ends AFTER the game
-    [state.leftName, state.rightName] = [state.rightName, state.leftName];
-    [state.leftGames, state.rightGames] = [state.rightGames, state.leftGames];
-
-    // Determine next server BEFORE reset
-    const nextServer = currentServer() === "left" ? "right" : "left";
-
-    // Reset points
-    state.leftScore = 0;
-    state.rightScore = 0;
-    state.startingServer = nextServer;
-
-    // Now check if match is over
-    checkMatchEnd();
-
-    return true;
+    state.setHistory.push({
+      playerA: a,
+      playerB: b,
+      aGames,
+      bGames,
+      winnerName,
+      endedAt: new Date().toISOString()
+    });
   }
-  return false;
-}
 
+  function checkMatchEnd(){
+    if (state.leftGames >= MATCH_GAMES_TO_WIN) {
+      state.matchOver = true;
+      recordFinishedSet("left");
+      showMatchOverlay(state.setPlayerA, state.leftGames, state.rightGames);
+      return true;
+    }
+    if (state.rightGames >= MATCH_GAMES_TO_WIN) {
+      state.matchOver = true;
+      recordFinishedSet("right");
+      showMatchOverlay(state.setPlayerB, state.rightGames, state.leftGames);
+      return true;
+    }
+    return false;
+  }
+
+  function maybeAwardGame(){
+    const l = state.leftScore, r = state.rightScore;
+    const diff = Math.abs(l - r);
+    const max = Math.max(l, r);
+
+    if (max >= 11 && diff >= 2){
+
+      // Award the game AND night points (+1 per game won)
+      if(l > r){
+        state.leftGames++;
+        state.nightHomePoints++;
+      }else{
+        state.rightGames++;
+        state.nightAwayPoints++;
+      }
+
+      // Swap ENDS ONLY (do not swap game totals)
+      [state.leftName, state.rightName] = [state.rightName, state.leftName];
+      [state.leftScore, state.rightScore] = [state.rightScore, state.leftScore];
+
+      // Decide next server before reset (so it continues cleanly)
+      const nextServer = currentServer() === "left" ? "right" : "left";
+
+      // Reset points for next game
+      state.leftScore = 0;
+      state.rightScore = 0;
+      state.startingServer = nextServer;
+
+      // Check if set finished
+      checkMatchEnd();
+
+      return true;
+    }
+    return false;
+  }
 
   function addPoint(side){
     if (state.matchOver) return;
@@ -733,7 +912,6 @@
     pushHistory();
     [state.leftName, state.rightName] = [state.rightName, state.leftName];
     [state.leftScore, state.rightScore] = [state.rightScore, state.leftScore];
-    [state.leftGames, state.rightGames] = [state.rightGames, state.leftGames];
     state.startingServer = (state.startingServer === "left") ? "right" : "left";
     render();
   }
@@ -748,6 +926,10 @@
     render();
   }
 
+  function isBeforeSetStarts(){
+    return !state.matchOver && state.leftScore === 0 && state.rightScore === 0 && state.leftGames === 0 && state.rightGames === 0 && totalPoints() === 0;
+  }
+
   function editName(which){
     if (state.matchOver) return;
     const current = which === "left" ? state.leftName : state.rightName;
@@ -755,8 +937,16 @@
     if (next === null) return;
     pushHistory();
     const cleaned = next.trim().slice(0, 20) || current;
+
     if (which === "left") state.leftName = cleaned;
     else state.rightName = cleaned;
+
+    // If we haven't started the set yet, keep the set player labels aligned
+    if (isBeforeSetStarts()){
+      state.setPlayerA = state.leftName;
+      state.setPlayerB = state.rightName;
+    }
+
     render();
   }
 
@@ -776,24 +966,20 @@
   $("swapBtn").addEventListener("click", swapEnds);
 
   $("newGameBtn").addEventListener("click", () => {
-    if (confirm("Start a new game? (Scores reset to 0–0)")) newGame();
+    if (confirm("Start a new game? (Point scores reset to 0–0)")) newGame();
   });
-$("newNightBtn").addEventListener("click", () => {
-  if(confirm("Reset night scores?")){
-    state.nightHomePoints = 0;
-    state.nightAwayPoints = 0;
-    render();
-  }
-});
+
   $("newMatchBtn").addEventListener("click", () => {
-    if (confirm("Start a new match? (Resets points, games, names)")) newMatch();
+    if (confirm("Start a new match? (Resets points and games, names to HOME/AWAY)")) newMatch();
   });
 
   $("overlayNewMatchBtn").addEventListener("click", () => {
-    if (confirm("Start a new match? (Resets points, games, names)")) newMatch();
+    if (confirm("Start a new match? (Resets points and games, names to HOME/AWAY)")) newMatch();
   });
 
   $("overlayCloseBtn").addEventListener("click", hideMatchOverlay);
+
+  $("newNightBtn").addEventListener("click", newNight);
 
   $("serveLeft").addEventListener("click", (e) => { e.stopPropagation(); toggleServer(); });
   $("serveRight").addEventListener("click", (e) => { e.stopPropagation(); toggleServer(); });
@@ -803,15 +989,36 @@ $("newNightBtn").addEventListener("click", () => {
   $("rightNamePlus").addEventListener("click", (e) => { e.stopPropagation(); adjustGames("right", +1); });
   $("rightNameMinus").addEventListener("click", (e) => { e.stopPropagation(); adjustGames("right", -1); });
 
+  // History UI
+  $("nightScore").addEventListener("click", openHistory);
+  $("historyCloseBtn").addEventListener("click", closeHistory);
+  $("historyClearBtn").addEventListener("click", () => {
+    if(confirm("Clear set history? (Night score stays)")){
+      pushHistory();
+      state.setHistory = [];
+      render();
+      renderHistory();
+    }
+  });
+
+  // Keyboard
   window.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") addPoint("left");
     if (e.key === "ArrowRight") addPoint("right");
     if (e.key.toLowerCase() === "u") undo();
     if (e.key.toLowerCase() === "s") swapEnds();
     if (e.key.toLowerCase() === "n") newGame();
+    if (e.key.toLowerCase() === "h") openHistory();
   });
 
+  // Restore saved match (if any)
   loadState();
+
+  // If we loaded a fresh state and set players are missing, initialize
+  if (!state.setPlayerA) state.setPlayerA = state.leftName;
+  if (!state.setPlayerB) state.setPlayerB = state.rightName;
+
+  // Initial render
   render();
 
   // ---- Wake Lock ----
