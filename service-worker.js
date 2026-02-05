@@ -1,4 +1,6 @@
-const CACHE_NAME = "tt-scoreboard-runtime-v4.9.3";
+importScripts("./version.js");
+const CACHE_NAME = `tt-scoreboard-runtime-v${self.APP_VERSION}`;
+
 const CORE_ASSETS = [
   "./",
   "./index.html",
