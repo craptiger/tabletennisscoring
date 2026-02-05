@@ -491,12 +491,12 @@
   <!-- Match-end overlay -->
   <div class="overlay" id="matchOverlay" aria-hidden="true">
     <div class="overlay-card">
-      <div class="overlay-title" id="matchTitle">Match Over</div>
+      <div class="overlay-title" id="matchTitle">Set Over</div>
       <div class="overlay-sub" id="matchSub">HOME wins 3–0</div>
 
       <div class="overlay-actions">
-        <button id="overlayNewMatchBtn">NEW MATCH</button>
-        <button id="newNightBtn">NEW NIGHT</button>
+        <button id="overlayNewMatchBtn">NEW Set</button>
+        <button id="newNightBtn">NEW MATCH</button>
         <button id="overlayCloseBtn">CLOSE</button>
       </div>
     </div>
@@ -505,8 +505,8 @@
   <!-- History overlay -->
   <div class="overlay" id="historyOverlay" aria-hidden="true">
     <div class="overlay-card">
-      <div class="overlay-title">Night History</div>
-      <div class="overlay-sub" id="historySub">Night score: 0–0</div>
+      <div class="overlay-title">Match History</div>
+      <div class="overlay-sub" id="historySub">Match score: 0–0</div>
 
       <div class="historyWrap" id="historyList"></div>
       <div class="historyMeta" id="historyMeta">Tap CLOSE to return.</div>
@@ -532,7 +532,7 @@
 
     matchOver: false,
 
-    // Night score = total games won across all sets
+    // Match score = total games won across all sets
     nightHomePoints: 0,
     nightAwayPoints: 0,
 
