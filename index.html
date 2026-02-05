@@ -349,6 +349,24 @@
     }
 
     .overlay-actions button:active{ background: var(--tap); }
+
+    .nightScore{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: 22px;
+  font-weight: 950;
+  min-width: 90px;
+  border: 3px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.nightScore .dash{
+  margin: 0 6px;
+}
+
   </style>
 </head>
 
@@ -365,7 +383,11 @@
           <button id="leftNameMinus" title="Remove game">-</button>
         </div>
       </div>
-
+      <div class="nightScore" id="nightScore">
+        <span id="nightHome">0</span>
+        <span class="dash">–</span>
+        <span id="nightAway">0</span>
+      </div>
       <div class="badge" id="badgeRight">
         <div class="mini">
           <button id="rightNamePlus" title="Add game">+</button>
@@ -427,6 +449,7 @@
       <div class="overlay-sub" id="matchSub">HOME wins 3–0</div>
       <div class="overlay-actions">
         <button id="overlayNewMatchBtn">NEW MATCH</button>
+        <button id="newNightBtn">NEW NIGHT</button>
         <button id="overlayCloseBtn">CLOSE</button>
       </div>
     </div>
@@ -444,6 +467,8 @@
     rightGames: 0,
     startingServer: "left",
     matchOver: false,
+    nightHomePoints: 0,
+    nightAwayPoints: 0,
     history: []
   };
 
@@ -466,7 +491,9 @@
         leftGames: state.leftGames,
         rightGames: state.rightGames,
         startingServer: state.startingServer,
-        matchOver: state.matchOver
+        matchOver: state.matchOver,
+        nightHomePoints: state.nightHomePoints,
+        nightAwayPoints: state.nightAwayPoints
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     }catch(e){}
@@ -487,7 +514,8 @@
       state.leftGames = Number.isFinite(s.leftGames) ? s.leftGames : state.leftGames;
       state.rightGames = Number.isFinite(s.rightGames) ? s.rightGames : state.rightGames;
       state.startingServer = (s.startingServer === "left" || s.startingServer === "right") ? s.startingServer : state.startingServer;
-
+      state.nightHomePoints = Number.isFinite(s.nightHomePoints) ? s.nightHomePoints : 0;
+      state.nightAwayPoints = Number.isFinite(s.nightAwayPoints) ? s.nightAwayPoints : 0;
       state.history = [];
     }catch(e){}
   }
@@ -599,6 +627,8 @@
 
     $("gamesLeft").textContent = state.leftGames;
     $("gamesRight").textContent = state.rightGames;
+    $("nightHome").textContent = state.nightHomePoints;
+    $("nightAway").textContent = state.nightAwayPoints;
 
     const s = currentServer();
 
@@ -640,8 +670,14 @@
   if (max >= 11 && diff >= 2){
 
     // Award the game
-    if (l > r) state.leftGames++;
-    else state.rightGames++;
+    if(l > r){
+      state.leftGames++;
+      state.nightHomePoints++;   // ⭐ add
+    }else{
+      state.rightGames++;
+      state.nightAwayPoints++;   // ⭐ add
+    }
+
 
     // Swap ends AFTER the game
     [state.leftName, state.rightName] = [state.rightName, state.leftName];
@@ -742,7 +778,13 @@
   $("newGameBtn").addEventListener("click", () => {
     if (confirm("Start a new game? (Scores reset to 0–0)")) newGame();
   });
-
+$("newNightBtn").addEventListener("click", () => {
+  if(confirm("Reset night scores?")){
+    state.nightHomePoints = 0;
+    state.nightAwayPoints = 0;
+    render();
+  }
+});
   $("newMatchBtn").addEventListener("click", () => {
     if (confirm("Start a new match? (Resets points, games, names)")) newMatch();
   });
