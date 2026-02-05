@@ -1,4 +1,4 @@
-const CACHE_NAME = "tt-scoreboard-runtime-v4.8";
+const CACHE_NAME = "tt-scoreboard-runtime-v4.9";
 const CORE_ASSETS = [
   "./",
   "./index.html",
