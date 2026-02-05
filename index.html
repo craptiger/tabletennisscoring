@@ -802,46 +802,54 @@
     render();
   }
 
-  function recordFinishedSet(winnerSide){
-    if (state.setRecorded) return;
-    state.setRecorded = true;
+  function recordFinishedSet(entry){
+  state.setHistory = state.setHistory || [];
+  state.setHistory.push({
+    playerA: entry.playerA,
+    playerB: entry.playerB,
+    aGames: entry.aGames,
+    bGames: entry.bGames,
+    winnerName: entry.winnerName,
+    endedAt: new Date().toISOString()
+  });
+}
 
-    // Set score is tracked in leftGames/rightGames, but we want it against the players at set start.
-    // IMPORTANT: Because you swap ends after each game, state.leftName/state.rightName may have swapped.
-    // The simplest reliable record is just the two start names and final games totals.
-    const a = state.setPlayerA || "HOME";
-    const b = state.setPlayerB || "AWAY";
-    const aGames = state.leftGames;
-    const bGames = state.rightGames;
 
-    // Winner name:
-    const winnerName = (winnerSide === "left") ? a : b;
+function checkMatchEnd(){
+  if (state.leftGames >= MATCH_GAMES_TO_WIN) {
+    state.matchOver = true;
 
-    state.setHistory.push({
-      playerA: a,
-      playerB: b,
-      aGames,
-      bGames,
-      winnerName,
-      endedAt: new Date().toISOString()
+    // Record / display using what the user sees RIGHT NOW
+    recordFinishedSet({
+      playerA: state.leftName,
+      playerB: state.rightName,
+      aGames: state.leftGames,
+      bGames: state.rightGames,
+      winnerName: state.leftName
     });
+
+    showMatchOverlay(state.leftName, state.leftGames, state.rightGames);
+    return true;
   }
 
-  function checkMatchEnd(){
-    if (state.leftGames >= MATCH_GAMES_TO_WIN) {
-      state.matchOver = true;
-      recordFinishedSet("left");
-      showMatchOverlay(state.setPlayerA, state.leftGames, state.rightGames);
-      return true;
-    }
-    if (state.rightGames >= MATCH_GAMES_TO_WIN) {
-      state.matchOver = true;
-      recordFinishedSet("right");
-      showMatchOverlay(state.setPlayerB, state.rightGames, state.leftGames);
-      return true;
-    }
-    return false;
+  if (state.rightGames >= MATCH_GAMES_TO_WIN) {
+    state.matchOver = true;
+
+    recordFinishedSet({
+      playerA: state.leftName,
+      playerB: state.rightName,
+      aGames: state.leftGames,
+      bGames: state.rightGames,
+      winnerName: state.rightName
+    });
+
+    showMatchOverlay(state.rightName, state.rightGames, state.leftGames);
+    return true;
   }
+
+  return false;
+}
+
 
   function maybeAwardGame(){
   const l = state.leftScore, r = state.rightScore;
@@ -916,13 +924,27 @@
     render();
   }
 
-  function swapEnds(){
-    pushHistory();
-    [state.leftName, state.rightName] = [state.rightName, state.leftName];
-    [state.leftScore, state.rightScore] = [state.rightScore, state.leftScore];
-    state.startingServer = (state.startingServer === "left") ? "right" : "left";
-    render();
-  }
+function swapEnds(){
+  pushHistory();
+
+  // Swap who is on each end
+  [state.leftName, state.rightName] = [state.rightName, state.leftName];
+
+  // Swap current points (within the current game)
+  [state.leftScore, state.rightScore] = [state.rightScore, state.leftScore];
+
+  // Swap games won in the current set
+  [state.leftGames, state.rightGames] = [state.rightGames, state.leftGames];
+
+  // ✅ Swap night score (games won across the night)
+  [state.nightHomePoints, state.nightAwayPoints] = [state.nightAwayPoints, state.nightHomePoints];
+
+  // Swap server side (so the serve highlight stays with the correct physical end)
+  state.startingServer = (state.startingServer === "left") ? "right" : "left";
+
+  render();
+}
+
 
   function newGame(){
     if (state.matchOver) return;
