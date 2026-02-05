@@ -844,40 +844,48 @@
   }
 
   function maybeAwardGame(){
-    const l = state.leftScore, r = state.rightScore;
-    const diff = Math.abs(l - r);
-    const max = Math.max(l, r);
+  const l = state.leftScore, r = state.rightScore;
+  const diff = Math.abs(l - r);
+  const max = Math.max(l, r);
 
-    if (max >= 11 && diff >= 2){
+  if (max >= 11 && diff >= 2){
 
-      // Award the game AND night points (+1 per game won)
-      if(l > r){
-        state.leftGames++;
-        state.nightHomePoints++;
-      }else{
-        state.rightGames++;
-        state.nightAwayPoints++;
-      }
+    // 1) Award the game + night point to the winner (current sides)
+    if (l > r) {
+      state.leftGames++;
+      state.nightHomePoints++;
+    } else {
+      state.rightGames++;
+      state.nightAwayPoints++;
+    }
 
-      // Swap ENDS ONLY (do not swap game totals)
-      [state.leftName, state.rightName] = [state.rightName, state.leftName];
-      [state.leftScore, state.rightScore] = [state.rightScore, state.leftScore];
-
-      // Decide next server before reset (so it continues cleanly)
-      const nextServer = currentServer() === "left" ? "right" : "left";
-
-      // Reset points for next game
+    // 2) Check if the SET ended (best of 5)
+    // If the set ends, do NOT swap ends afterwards (it’s confusing at “Set Over”)
+    if (checkMatchEnd()) {
+      // reset points for cleanliness
       state.leftScore = 0;
       state.rightScore = 0;
-      state.startingServer = nextServer;
-
-      // Check if set finished
-      checkMatchEnd();
-
       return true;
     }
-    return false;
+
+    // 3) Otherwise, swap ENDS for the next game.
+    // IMPORTANT: swap EVERYTHING that is side-attached so the displayed score stays coherent.
+    [state.leftName, state.rightName] = [state.rightName, state.leftName];
+    [state.leftGames, state.rightGames] = [state.rightGames, state.leftGames];
+    [state.nightHomePoints, state.nightAwayPoints] = [state.nightAwayPoints, state.nightHomePoints];
+
+    // reset point scores for next game
+    state.leftScore = 0;
+    state.rightScore = 0;
+
+    // flip starting server so currentServer() remains consistent after swap
+    state.startingServer = (state.startingServer === "left") ? "right" : "left";
+
+    return true;
   }
+  return false;
+}
+
 
   function addPoint(side){
     if (state.matchOver) return;
