@@ -664,7 +664,7 @@
       return `
         <div class="historyRow">
           <span>${label} <span style="color:var(--muted); font-weight:800;">${winner}</span></span>
-          <span style="white-space:nowrap;">${score} <span style="color:var(--muted); font-weight:800;">${time}</span></span>
+          <span style="white-space:nowrap;">${score} <span style="color:var(--muted); font-weight:800;"> (${time})</span></span>
         </div>
       `;
     }).join("");
@@ -692,40 +692,41 @@
   }
 
 function newNight(){
-  if (!confirm("Start a new night? (Resets everything: night score, history, set/game scores, names)")) return;
+  if (!confirm("Start a new night? (Resets everything)")) return;
 
-  // Clear undo history
+  // clear undo history
   state.history = [];
 
-  // Reset names
+  // reset names
   state.leftName = "HOME";
   state.rightName = "AWAY";
 
-  // Reset current game + set
+  // reset current game + set
   state.leftScore = 0;
   state.rightScore = 0;
   state.leftGames = 0;
   state.rightGames = 0;
 
-  // Reset night totals + history
+  // reset night totals + history
   state.nightHomePoints = 0;
   state.nightAwayPoints = 0;
   state.setHistory = [];
 
-  // Reset server + overlays
-  state.startingServer = "left";
-  state.matchOver = false;
-  state.setRecorded = false;
-
-  // Keep set labels aligned (if you still use them anywhere)
+  // reset set tracking
   state.setPlayerA = state.leftName;
   state.setPlayerB = state.rightName;
+  state.setRecorded = false;
 
-  hideMatchOverlay();
-  if (typeof closeHistory === "function") closeHistory();
+  // reset serve + overlays
+  state.startingServer = "left";
+  state.matchOver = false;
+
+  hideMatchOverlay?.();
+  closeHistory?.();
 
   render();
 }
+
 
 
   function newMatch(){
@@ -929,8 +930,6 @@ function checkMatchEnd(){
     pushHistory();
     if (side === "left") state.leftScore = clampScore(state.leftScore + 1);
     else state.rightScore = clampScore(state.rightScore + 1);
-
-    if (navigator.vibrate) navigator.vibrate(18);
 
     maybeAwardGame();
     render();
