@@ -7,7 +7,7 @@
   <meta name="orientation" content="landscape">
 
   <title>Table Tennis Score</title>
-
+  <script src="./version.js"></script>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
@@ -478,7 +478,7 @@
       <button id="newGameBtn">NEW GAME</button>
     </div>
 
-    <div class="hint">
+    <div class="hint" id="hintText">
       Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2).
       Tap the match score to view set history.
     </div>
@@ -515,6 +515,8 @@
   </div>
 
 <script>
+  const APP_VERSION = (typeof self !== "undefined" && self.APP_VERSION) ? self.APP_VERSION : "dev";
+
 (() => {
   /*
     Terminology:
@@ -978,6 +980,10 @@
     if (isBeforeSetStarts()) render();
     else render();
   }
+
+  $("hintText").textContent =
+  `Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). ` +
+  `Tap the match score to view set history. (v${APP_VERSION})`;
 
   // ----- Wire up events -----
   $("tapLeft").addEventListener("click", () => addPoint("left"));
