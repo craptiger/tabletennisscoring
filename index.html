@@ -689,20 +689,42 @@
     }));
   }
 
-  function newNight(){
-    pushHistory();
-    if(confirm("Start a new night? (Clears night score and set history)")){
-      state.nightHomePoints = 0;
-      state.nightAwayPoints = 0;
-      state.leftScore = 0;
-      state.rightScore = 0;
-      state.leftGames = 0;
-      state.rightGames = 0;
-      state.setHistory = [];
-      render();
-      closeHistory();
-    }
-  }
+function newNight(){
+  if (!confirm("Start a new night? (Resets everything: night score, history, set/game scores, names)")) return;
+
+  // Clear undo history
+  state.history = [];
+
+  // Reset names
+  state.leftName = "HOME";
+  state.rightName = "AWAY";
+
+  // Reset current game + set
+  state.leftScore = 0;
+  state.rightScore = 0;
+  state.leftGames = 0;
+  state.rightGames = 0;
+
+  // Reset night totals + history
+  state.nightHomePoints = 0;
+  state.nightAwayPoints = 0;
+  state.setHistory = [];
+
+  // Reset server + overlays
+  state.startingServer = "left";
+  state.matchOver = false;
+  state.setRecorded = false;
+
+  // Keep set labels aligned (if you still use them anywhere)
+  state.setPlayerA = state.leftName;
+  state.setPlayerB = state.rightName;
+
+  hideMatchOverlay();
+  if (typeof closeHistory === "function") closeHistory();
+
+  render();
+}
+
 
   function newMatch(){
     state.history = [];
