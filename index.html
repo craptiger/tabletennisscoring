@@ -590,7 +590,39 @@
     history: []
   };
 
-  function cloneState(s){ return JSON.parse(JSON.stringify(s)); }
+// ---- Undo: lightweight snapshots (prevents JSON.stringify blow-ups) ----
+const MAX_UNDO = 4;
+
+function snapshotUndo(){
+  // Only store what you actually need to undo during live play.
+  // DO NOT store setsHistory here.
+  return {
+    // player names
+    leftName: state.leftName,
+    rightName: state.rightName,
+
+    // points in current game
+    leftPoints: state.leftPoints,
+    rightPoints: state.rightPoints,
+
+    // games in current set
+    leftSetGames: state.leftSetGames,
+    rightSetGames: state.rightSetGames,
+
+    // match totals
+    matchHomeGames: state.matchHomeGames,
+    matchAwayGames: state.matchAwayGames,
+
+    // serve + flags
+    startingServer: state.startingServer,
+    setOver: state.setOver
+  };
+}
+
+function pushHistory(){
+  state.history.push(snapshotUndo());
+  if (state.history.length > MAX_UNDO) state.history.shift();
+}
 
   function otherTeam(team){ return team === "home" ? "away" : "home"; }
 
@@ -938,12 +970,28 @@
     render();
   }
 
-  function undo(){
-    const prev = state.history.pop();
-    if (!prev) return;
-    state = prev;
-    render();
-  }
+function undo(){
+  const prev = state.history.pop();
+  if (!prev) return;
+
+  state.leftName = prev.leftName;
+  state.rightName = prev.rightName;
+
+  state.leftPoints = prev.leftPoints;
+  state.rightPoints = prev.rightPoints;
+
+  state.leftSetGames = prev.leftSetGames;
+  state.rightSetGames = prev.rightSetGames;
+
+  state.matchHomeGames = prev.matchHomeGames;
+  state.matchAwayGames = prev.matchAwayGames;
+
+  state.startingServer = prev.startingServer;
+  state.setOver = prev.setOver;
+
+  render();
+}
+
 
   function editPlayerName(side){
     if (state.setOver) return;
