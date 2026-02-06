@@ -475,6 +475,7 @@
     serveLeftHidden: null,
     serveRightHidden: null,
     canUndo: null,
+    hintText: null, 
   };
 
   function setText(node, key, value){
@@ -540,14 +541,14 @@
       el.undoBtn.disabled = !canUndo;
       el.undoBtn.style.opacity = canUndo ? 1 : 0.5;
     }
+    const hint =
+      `Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). ` +
+      `Tap the match score to view set history. (v${APP_VERSION})`;
+    
+    setText(el.hintText, "hintText", hint);
 
     scheduleSave();
   }
-
-  // Set hint once (no need to rewrite every render)
-  el.hintText.textContent =
-    `Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). ` +
-    `Tap the match score to view set history. (v${APP_VERSION})`;
 
   // ----- Wire up events -----
   const on = (id, type, fn, opts) => $(id).addEventListener(type, fn, opts);
