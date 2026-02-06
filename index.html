@@ -989,27 +989,7 @@ function undo(){
     render();
   }
 
-function undo(){
-  const prev = state.history.pop();
-  if (!prev) return;
 
-  state.leftName = prev.leftName;
-  state.rightName = prev.rightName;
-
-  state.leftPoints = prev.leftPoints;
-  state.rightPoints = prev.rightPoints;
-
-  state.leftSetGames = prev.leftSetGames;
-  state.rightSetGames = prev.rightSetGames;
-
-  state.matchHomeGames = prev.matchHomeGames;
-  state.matchAwayGames = prev.matchAwayGames;
-
-  state.startingServer = prev.startingServer;
-  state.setOver = prev.setOver;
-
-  render();
-}
 
 
   function editPlayerName(side){
