@@ -542,7 +542,9 @@
       <div class="overlay-actions">
         <button id="setHistoryCloseBtn">CLOSE</button>
         <button id="setHistoryClearBtn">CLEAR HISTORY</button>
+        <button id="setHistoryResetAllBtn">RESET ALL</button>
       </div>
+
     </div>
   </div>
 
@@ -894,6 +896,33 @@
     render();
   }
 
+  function resetAll(){
+  // Full reset without confirm (explicit user action from the overlay)
+  state.history = [];
+
+  state.homePlayer = "HOME";
+  state.awayPlayer = "AWAY";
+
+  state.homePoints = 0;
+  state.awayPoints = 0;
+
+  state.homeSetGames = 0;
+  state.awaySetGames = 0;
+
+  state.matchHomeGames = 0;
+  state.matchAwayGames = 0;
+
+  state.setsHistory = [];
+
+  state.leftTeam = "home";
+  state.startingServerSide = "left";
+  state.setOver = false;
+
+  hideSetOverlay();
+  closeSetHistory();
+  render();
+}
+
   function newSet(){
     state.history = [];
     state.homePoints = 0;
@@ -1135,6 +1164,7 @@
 
   on("matchScore","click", openSetHistory);
   on("setHistoryCloseBtn","click", closeSetHistory);
+  on("setHistoryResetAllBtn","click", () => {if (confirm("Reset everything and start again?")) resetAll();});
   on("setHistoryClearBtn","click", () => {
     if(confirm("Clear set history? (Match score stays)")){
       pushHistory();
