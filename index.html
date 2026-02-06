@@ -1,3 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="screen-orientation" content="landscape">
+  <meta name="orientation" content="landscape">
+
+  <title>Table Tennis Score</title>
+  <script src="./version.js"></script>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="theme-color" content="#1e8e3e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <style>
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+
+    :root{
+      --bg:#fafffc;
+      --panel:#fff;
+      --ink:#111;
+      --muted:#666;
+      --line:#111;
+      --shadow: 0 10px 25px rgba(0,0,0,.10);
+      --radius: 18px;
+      --tap: rgba(0,0,0,.06);
+      --serve: #e6faef;
+      --danger: #b00020;
+      --servebordah: green;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--ink);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app{
+      min-height: 100svh;
+      display:flex;
+      flex-direction:column;
+      padding:
+        calc(10px + env(safe-area-inset-top))
+        calc(10px + env(safe-area-inset-right))
+        calc(10px + env(safe-area-inset-bottom))
+        calc(10px + env(safe-area-inset-left));
+      gap: 6px;
+    }
+
+    .top{
+      display:flex;
+      gap:14px;
+      align-items:stretch;
+      justify-content:space-between;
+    }
+
+    .namewrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width: 0;
+    }
+
+    .badge{
+      flex: 1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 6px 8px;
+      min-height: 44px;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .badge .mini{
+      display:flex;
+      flex-direction:row;
+      gap:6px;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
+    .mini button{
+      width: 34px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: 900;
+      border: 3px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      cursor:pointer;
+    }
+    .mini button:active{ background: var(--tap); }
+
+    /* TEAM tag + editable PLAYER name */
+    .badge .name{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: .3px;
+      padding: 4px 6px;
+      border-radius: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 34vw;
+      cursor: pointer;
+    }
+    .badge .name:active{ background: var(--tap); }
+
+    .teamtag{
+      display:inline-block;
+      padding: 2px 6px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      font-weight: 950;
+      font-size: 12px;
+      letter-spacing: .4px;
+      background: var(--panel);
+      flex: 0 0 auto;
+    }
+
+    .playername{
+      font-weight: 900;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    /* games won within the current SET */
+    .set-games{
+      font-size: 18px;
+      font-weight: 900;
+      min-width: 40px;
+      padding: 4px 8px;
+      border: 3px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      text-align:center;
+      flex-shrink: 0;
+    }
+
+    .board{
+      position: relative;
+      flex:1;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items:stretch;
+      min-width: 0;
+    }
+
+    .center-set {
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      transform: translateX(-50%);
+      z-index: 5;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events: none;
+    }
+
+    .center-set button{
+      pointer-events: auto;
+      height: 38px;
+      padding: 0 12px;
+      font-size: 14px;
+      font-weight: 900;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .center-set button:active{ background: var(--tap); }
+
+    .side{
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      border: 4px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-width: 0;
+    }
+
+    .side.serving {
+      border: 8px solid var(--servebordah);
+      box-shadow: 0 0 0 4px rgba(30, 142, 62, 0.25), var(--shadow);
+      background:var(--serve);
+    }
+
+    .side.flash { animation: serveFlash 250ms ease-out; }
+    @keyframes serveFlash {
+      from { transform: scale(1.00); }
+      50% { transform: scale(1.01); }
+      to { transform: scale(1.00); }
+    }
+
+    .serve-indicator{
+      cursor:pointer;
+      position:absolute;
+      top: 8px;
+      left: 8px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--serve);
+      border: 2px solid var(--line);
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing:.2px;
+    }
+    .dot{
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--ink);
+      display:inline-block;
+    }
+    .serve-hidden{ display:none; }
+
+    .score-tap{
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 10px;
+      cursor:pointer;
+    }
+    .score{
+      font-size: clamp(92px, 14vw, 175px);
+      font-weight: 900;
+      line-height:1;
+    }
+    .score-tap:active{ background: var(--tap); }
+
+    .controls{
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 6px 8px;
+      border-top: 4px solid var(--line);
+    }
+    .controls button{
+      flex: 1;
+      height: 44px;
+      font-size: 28px;
+      font-weight: 900;
+      border: 0;
+      background: var(--panel);
+      cursor:pointer;
+      border-radius: 12px;
+    }
+    .controls button:active{ background: var(--tap); }
+
+    .bottom{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:nowrap;
+    }
+    .bottom button{
+      flex: 1;
+      min-width: 0;
+      height: 40px;
+      font-size: 13px;
+      font-weight: 900;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      cursor:pointer;
+      padding: 0 8px;
+      white-space: nowrap;
+    }
+    .bottom button:active{ background: var(--tap); }
+
+    .hint{
+      text-align:center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: -2px;
+    }
+
+    @media (max-width: 520px){
+      .badge .name{ font-size: 16px; max-width: 30vw; }
+      .set-games{ font-size: 16px; min-width: 36px; padding: 3px 7px; }
+      .mini button{ width: 32px; height: 28px; font-size: 15px; }
+      .controls button{ height: 40px; font-size: 26px; }
+      .bottom button{ height: 36px; font-size: 12px; }
+      .center-set button{ height: 34px; font-size: 13px; }
+      .teamtag{ font-size: 11px; padding: 2px 5px; }
+    }
+
+    /* Overlays */
+    .overlay{
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding:
+        calc(14px + env(safe-area-inset-top))
+        calc(14px + env(safe-area-inset-right))
+        calc(14px + env(safe-area-inset-bottom))
+        calc(14px + env(safe-area-inset-left));
+      background: rgba(0,0,0,0.55);
+      z-index: 9999;
+    }
+    .overlay.show{ display: flex; }
+
+    .overlay-card{
+      width: min(520px, 92vw);
+      max-height: min(78svh, 520px);
+      overflow: hidden;
+      display:flex;
+      flex-direction:column;
+      background: var(--panel);
+      border: 4px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    .overlay-title{
+      font-size: 24px;
+      font-weight: 950;
+      margin-bottom: 6px;
+    }
+
+    .overlay-sub{
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .overlay-actions{
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .overlay-actions button{
+      height: 42px;
+      padding: 0 14px;
+      font-size: 14px;
+      font-weight: 900;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      white-space: nowrap;
+    }
+
+    .overlay-actions button:active{ background: var(--tap); }
+
+    /* MATCH score = total games won across all sets (tap to view set history) */
+    .matchScore{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 56px;
+      height: 30px;
+      padding: 0 6px;
+      font-size: 13px;
+      font-weight: 900;
+      border: 3px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      flex: 0 0 auto;
+      cursor: pointer;
+      user-select: none;
+    }
+    .matchScore:active{ background: var(--tap); }
+    .matchScore .dash{ margin: 0 3px; }
+
+    @media (max-width: 520px){
+      .matchScore{ height: 28px; min-width: 52px; font-size: 12px; padding: 0 6px; }
+      .matchScore .dash{ margin: 0 2px; }
+    }
+
+    /* Set history list */
+    .historyWrap{
+      flex: 1;
+      overflow: auto;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      text-align:left;
+      background: rgba(0,0,0,.02);
+    }
+    .historyRow{
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 8px 6px;
+      border-bottom: 2px solid rgba(0,0,0,.08);
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .historyRow:last-child{ border-bottom: none; }
+    .historyMeta{
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+      margin-top: 8px;
+      text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="top">
+      <div class="badge" id="badgeLeft">
+        <div class="namewrap">
+          <div class="name" id="nameLeftWrap" title="Tap to edit player name">
+            <span class="teamtag" id="teamTagLeft">HOME</span>
+            <span class="playername" id="nameLeft">HOME</span>
+          </div>
+          <div class="set-games" title="Games won in this set"><span id="setGamesLeft">0</span></div>
+        </div>
+        <div class="mini">
+          <button id="leftSetGamePlus" title="Add game in set">+</button>
+          <button id="leftSetGameMinus" title="Remove game in set">-</button>
+        </div>
+      </div>
+
+      <div class="matchScore" id="matchScore" title="Match score (total games won across all sets). Tap for set history.">
+        <span id="matchHome">0</span><span class="dash">–</span><span id="matchAway">0</span>
+      </div>
+
+      <div class="badge" id="badgeRight">
+        <div class="mini">
+          <button id="rightSetGamePlus" title="Add game in set">+</button>
+          <button id="rightSetGameMinus" title="Remove game in set">-</button>
+        </div>
+        <div class="namewrap">
+          <div class="name" id="nameRightWrap" title="Tap to edit player name">
+            <span class="teamtag" id="teamTagRight">AWAY</span>
+            <span class="playername" id="nameRight">AWAY</span>
+          </div>
+          <div class="set-games" title="Games won in this set"><span id="setGamesRight">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="board">
+      <div class="center-set">
+        <button id="newSetBtn" title="Start a new set (resets set games + points)">NEW SET</button>
+      </div>
+
+      <div class="side" id="sideLeft">
+        <div class="serve-indicator" id="serveLeft">
+          <span class="dot"></span><span>SERVE</span>
+        </div>
+        <div class="score-tap" id="tapLeft" title="Tap to add point">
+          <div class="score" id="pointsLeft">0</div>
+        </div>
+        <div class="controls">
+          <button id="leftPointPlus" aria-label="Left point plus">+</button>
+          <button id="leftPointMinus" aria-label="Left point minus">−</button>
+        </div>
+      </div>
+
+      <div class="side" id="sideRight">
+        <div class="serve-indicator" id="serveRight">
+          <span class="dot"></span><span>SERVE</span>
+        </div>
+        <div class="score-tap" id="tapRight" title="Tap to add point">
+          <div class="score" id="pointsRight">0</div>
+        </div>
+        <div class="controls">
+          <button id="rightPointPlus" aria-label="Right point plus">+</button>
+          <button id="rightPointMinus" aria-label="Right point minus">−</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <button id="undoBtn">UNDO</button>
+      <button id="swapEndsBtn">SWAP</button>
+      <button id="newGameBtn">NEW GAME</button>
+    </div>
+
+    <div class="hint" id="hintText">
+      Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2).
+      Tap the match score to view set history.
+    </div>
+  </div>
+
+  <!-- Set-end overlay -->
+  <div class="overlay" id="setOverlay" aria-hidden="true">
+    <div class="overlay-card">
+      <div class="overlay-title" id="setTitle">Set Over</div>
+      <div class="overlay-sub" id="setSub">HOME wins 3–0</div>
+
+      <div class="overlay-actions">
+        <button id="overlayNewSetBtn">NEW SET</button>
+        <button id="newMatchBtn">NEW MATCH</button>
+        <button id="setOverlayCloseBtn">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Set history overlay -->
+  <div class="overlay" id="setHistoryOverlay" aria-hidden="true">
+    <div class="overlay-card">
+      <div class="overlay-title">Set History</div>
+      <div class="overlay-sub" id="setHistorySub">Match score: 0–0</div>
+
+      <div class="historyWrap" id="setHistoryList"></div>
+      <div class="historyMeta" id="setHistoryMeta">Tap CLOSE to return.</div>
+
+      <div class="overlay-actions">
+        <button id="setHistoryCloseBtn">CLOSE</button>
+        <button id="setHistoryClearBtn">CLEAR HISTORY</button>
+      </div>
+    </div>
+  </div>
+
 <script>
   const APP_VERSION = (typeof self !== "undefined" && self.APP_VERSION) ? self.APP_VERSION : "dev";
 
@@ -50,8 +598,8 @@
     matchHomeGames: 0,
     matchAwayGames: 0,
 
-    leftTeam: "home",          // "home" | "away"
-    startingServerSide: "left",// "left" | "right"
+    leftTeam: "home",           // "home" | "away"
+    startingServerSide: "left", // "left" | "right"
     setOver: false,
 
     setsHistory: [],
@@ -141,7 +689,6 @@
   }
 
   function scheduleSave(){
-    // batch multiple rapid renders into one localStorage write
     if (saveTimer) return;
     saveTimer = setTimeout(() => {
       saveTimer = null;
@@ -475,7 +1022,7 @@
     serveLeftHidden: null,
     serveRightHidden: null,
     canUndo: null,
-    hintText: null, 
+    hintText: null
   };
 
   function setText(node, key, value){
@@ -541,10 +1088,10 @@
       el.undoBtn.disabled = !canUndo;
       el.undoBtn.style.opacity = canUndo ? 1 : 0.5;
     }
+
     const hint =
       `Tip: Tap the big score area to add a point. Tap SERVE to toggle server. Games auto-award at 11 (win by 2). ` +
       `Tap the match score to view set history. (v${APP_VERSION})`;
-    
     setText(el.hintText, "hintText", hint);
 
     scheduleSave();
@@ -607,7 +1154,7 @@
     else if (k === "h") openSetHistory();
   });
 
-  // Ensure any pending debounced save is persisted
+  // Flush any pending debounced save on exit
   window.addEventListener("pagehide", flushSave);
   window.addEventListener("beforeunload", flushSave);
 
@@ -635,3 +1182,5 @@
   }
 })();
 </script>
+</body>
+</html>
