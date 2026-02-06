@@ -594,27 +594,22 @@
 const MAX_UNDO = 4;
 
 function snapshotUndo(){
-  // Only store what you actually need to undo during live play.
-  // DO NOT store setsHistory here.
   return {
-    // player names
-    leftName: state.leftName,
-    rightName: state.rightName,
+    homePlayer: state.homePlayer,
+    awayPlayer: state.awayPlayer,
 
-    // points in current game
-    leftPoints: state.leftPoints,
-    rightPoints: state.rightPoints,
+    homePoints: state.homePoints,
+    awayPoints: state.awayPoints,
 
-    // games in current set
-    leftSetGames: state.leftSetGames,
-    rightSetGames: state.rightSetGames,
+    homeSetGames: state.homeSetGames,
+    awaySetGames: state.awaySetGames,
 
-    // match totals
     matchHomeGames: state.matchHomeGames,
     matchAwayGames: state.matchAwayGames,
 
-    // serve + flags
-    startingServer: state.startingServer,
+    leftTeam: state.leftTeam,
+    startingServerSide: state.startingServerSide,
+
     setOver: state.setOver
   };
 }
@@ -623,6 +618,32 @@ function pushHistory(){
   state.history.push(snapshotUndo());
   if (state.history.length > MAX_UNDO) state.history.shift();
 }
+
+function undo(){
+  const prev = state.history.pop();
+  if (!prev) return;
+
+  state.homePlayer = prev.homePlayer;
+  state.awayPlayer = prev.awayPlayer;
+
+  state.homePoints = prev.homePoints;
+  state.awayPoints = prev.awayPoints;
+
+  state.homeSetGames = prev.homeSetGames;
+  state.awaySetGames = prev.awaySetGames;
+
+  state.matchHomeGames = prev.matchHomeGames;
+  state.matchAwayGames = prev.matchAwayGames;
+
+  state.leftTeam = prev.leftTeam;
+  state.startingServerSide = prev.startingServerSide;
+
+  state.setOver = prev.setOver;
+
+  render();
+}
+
+
 
   function otherTeam(team){ return team === "home" ? "away" : "home"; }
 
@@ -689,9 +710,7 @@ function pushHistory(){
     }catch(e){}
   }
 
-  function pushHistory(){
-    state.history.push(cloneState(state));
-  }
+
 
   // ----- Serve logic (end-space) -----
   function totalPointsPlayed(){
